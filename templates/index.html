@@ -38,39 +38,25 @@
         </div>
     </div>
 
+    <script src="{{ url_for('static', filename='common.js') }}"></script>
     <script>
-        // サーバー時刻（JST）を基準にした時計
-        let serverOffset = 0;
-        async function syncTime() {
-            try {
-                const res = await fetch('/api/server_time');
-                const data = await res.json();
-                serverOffset = new Date(data.server_time).getTime() - Date.now();
-            } catch (e) { /* オフライン時は無視 */ }
-        }
-        function tick() {
-            const now = new Date(Date.now() + serverOffset);
-            const h = String(now.getHours()).padStart(2, '0');
-            const m = String(now.getMinutes()).padStart(2, '0');
-            const s = String(now.getSeconds()).padStart(2, '0');
-            document.getElementById('clock').textContent = `${h}:${m}:${s}`;
-        }
-
         async function loadStats() {
             try {
                 const res = await fetch('/api/stats');
                 const data = await res.json();
                 document.getElementById('stat-count').textContent = data.count;
                 document.getElementById('stat-avg').textContent = data.average;
-            } catch (e) { /* 無視 */ }
+            } catch (e) {}
         }
 
-        syncTime();
-        setInterval(tick, 1000);
-        tick();
-        loadStats();
-        setInterval(loadStats, 10000);
-        setInterval(syncTime, 60000);
+        (async function init() {
+            await syncTime();
+            tickClock();
+            loadStats();
+            setInterval(tickClock, 1000);
+            setInterval(loadStats, 10000);
+            setInterval(syncTime, 60000);
+        })();
     </script>
 </body>
 </html>

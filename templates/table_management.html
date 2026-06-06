@@ -19,48 +19,43 @@
     </header>
 
     <div class="container">
-        <p style="color:var(--gray); margin-top:8px;">
-            制限時間 <strong>15分</strong>。超過したブースは赤く点滅します。
-        </p>
+        <div class="toolbar">
+            <p style="color:var(--gray);">
+                制限時間 <strong id="limit-label">--</strong>分。超過したブースは赤く点滅します。
+            </p>
+            <div class="toolbar-actions">
+                <button class="btn-ghost" onclick="resetAll()">全ブースを空きに戻す</button>
+                <button class="btn-ghost" onclick="toggleManage()" id="manage-toggle">⚙ ブース管理</button>
+            </div>
+        </div>
+
         <div class="table-grid" id="table-grid"></div>
+
+        <!-- ブース管理パネル（追加・改名・削除） -->
+        <div class="panel manage-panel" id="manage-panel" style="display:none;">
+            <h2>⚙ ブース管理</h2>
+            <div class="manage-add">
+                <input type="text" id="new-table-name" placeholder="新しいブース名" autocomplete="off">
+                <button class="btn-start" onclick="addTable()">追加</button>
+            </div>
+            <div id="manage-list"></div>
+        </div>
     </div>
 
     <div class="toast" id="toast"></div>
 
+    <script src="{{ url_for('static', filename='common.js') }}"></script>
     <script>
-        const LIMIT_MIN = 15;
-        let serverOffset = 0;
-
-        async function syncTime() {
-            try {
-                const res = await fetch('/api/server_time');
-                const data = await res.json();
-                serverOffset = new Date(data.server_time).getTime() - Date.now();
-            } catch (e) {}
-        }
-        function serverNow() { return new Date(Date.now() + serverOffset); }
-
-        function tickClock() {
-            const now = serverNow();
-            document.getElementById('clock').textContent =
-                [now.getHours(), now.getMinutes(), now.getSeconds()]
-                    .map(n => String(n).padStart(2, '0')).join(':');
-        }
-
-        function showToast(msg, type) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.className = 'toast show ' + (type || '');
-            setTimeout(() => { t.className = 'toast'; }, 2500);
-        }
-
+        let LIMIT_MIN = 15;
         let tables = [];
+        let manageOpen = false;
 
         async function loadTables() {
             try {
                 const res = await fetch('/api/table/list');
                 tables = await res.json();
                 render();
+                if (manageOpen) renderManage();
             } catch (e) {}
         }
 
@@ -87,7 +82,6 @@
                 }
 
                 card.className = 'table-card ' + statusClass;
-                card.dataset.id = t.id;
                 card.innerHTML = `
                     <div class="name">${t.name}</div>
                     <span class="badge">${t.status}</span>
@@ -101,32 +95,82 @@
         function updateElapsed() {
             document.querySelectorAll('.elapsed').forEach(el => {
                 const start = new Date(el.dataset.start);
-                const diffMs = serverNow() - start;
-                const totalSec = Math.max(0, Math.floor(diffMs / 1000));
+                const totalSec = Math.max(0, Math.floor((serverNow() - start) / 1000));
                 const min = Math.floor(totalSec / 60);
-                const sec = totalSec % 60;
-                el.textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+                el.textContent = `${pad2(min)}:${pad2(totalSec % 60)}`;
                 const card = el.closest('.table-card');
-                if (min >= LIMIT_MIN) card.classList.add('over-time');
-                else card.classList.remove('over-time');
+                card.classList.toggle('over-time', min >= LIMIT_MIN);
             });
         }
 
         async function act(action, id) {
             try {
-                const res = await fetch(`/api/table/${action}/${id}`, { method: 'POST' });
-                const data = await res.json();
+                const data = await apiPost(`/api/table/${action}/${id}`);
                 if (data.success) {
                     await loadTables();
                 } else {
                     showToast(data.error || '操作に失敗しました', 'error');
+                    await loadTables();
                 }
             } catch (e) {
                 showToast('通信エラー', 'error');
             }
         }
 
+        async function resetAll() {
+            if (!confirm('すべてのブースを「空き」に戻します。よろしいですか？')) return;
+            const data = await apiPost('/api/table/reset_all');
+            if (data.success) { showToast('全ブースを空きに戻しました', 'success'); loadTables(); }
+            else showToast(data.error || '失敗しました', 'error');
+        }
+
+        // ===== ブース管理 =====
+        function toggleManage() {
+            manageOpen = !manageOpen;
+            document.getElementById('manage-panel').style.display = manageOpen ? 'block' : 'none';
+            document.getElementById('manage-toggle').classList.toggle('active', manageOpen);
+            if (manageOpen) renderManage();
+        }
+
+        function renderManage() {
+            const list = document.getElementById('manage-list');
+            list.innerHTML = tables.map(t => `
+                <div class="manage-row">
+                    <input type="text" value="${t.name.replace(/"/g, '&quot;')}" id="rename-${t.id}">
+                    <span class="badge-mini status-${t.status === '使用中' ? 'busy' : t.status === '休憩中' ? 'break' : 'empty'}">${t.status}</span>
+                    <button class="btn-mini" onclick="renameTable(${t.id})">改名</button>
+                    <button class="btn-mini btn-danger" onclick="deleteTable(${t.id})">削除</button>
+                </div>`).join('');
+        }
+
+        async function addTable() {
+            const input = document.getElementById('new-table-name');
+            const name = input.value.trim();
+            if (!name) { showToast('ブース名を入力してください', 'error'); return; }
+            const data = await apiPost('/api/table/add', { name });
+            if (data.success) { input.value = ''; showToast('ブースを追加しました', 'success'); loadTables(); }
+            else showToast(data.error || '追加に失敗しました', 'error');
+        }
+
+        async function renameTable(id) {
+            const name = document.getElementById(`rename-${id}`).value.trim();
+            if (!name) { showToast('ブース名を入力してください', 'error'); return; }
+            const data = await apiPost(`/api/table/rename/${id}`, { name });
+            if (data.success) { showToast('改名しました', 'success'); loadTables(); }
+            else showToast(data.error || '改名に失敗しました', 'error');
+        }
+
+        async function deleteTable(id) {
+            if (!confirm('このブースを削除します。よろしいですか？')) return;
+            const data = await apiPost(`/api/table/delete/${id}`);
+            if (data.success) { showToast('削除しました', 'success'); loadTables(); }
+            else showToast(data.error || '削除に失敗しました', 'error');
+        }
+
         (async function init() {
+            const cfg = await getConfig();
+            LIMIT_MIN = cfg.time_limit_min;
+            document.getElementById('limit-label').textContent = LIMIT_MIN;
             await syncTime();
             tickClock();
             await loadTables();

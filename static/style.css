@@ -343,3 +343,107 @@ table.queue-table tr:hover td {
 .toast.show { opacity: 1; }
 .toast.error { background: var(--red); }
 .toast.success { background: var(--green); }
+
+/* ===== ツールバー / ブース管理 ===== */
+.toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.toolbar-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+button.btn-ghost {
+    background: #fff;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    flex: none;
+}
+
+button.btn-ghost.active {
+    background: var(--primary);
+    color: #fff;
+}
+
+.manage-panel {
+    margin-top: 24px;
+}
+
+.manage-add {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.manage-add input {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.manage-add button { flex: none; }
+
+.manage-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.manage-row input {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.92rem;
+}
+
+.badge-mini {
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    color: #fff;
+    white-space: nowrap;
+}
+.badge-mini.status-empty { background: var(--gray); }
+.badge-mini.status-busy { background: var(--green); }
+.badge-mini.status-break { background: var(--orange); }
+
+button.btn-mini {
+    flex: none;
+    padding: 5px 10px;
+    font-size: 0.82rem;
+    background: var(--primary);
+}
+
+/* ===== 対応済みセクション ===== */
+.done-section {
+    margin-top: 18px;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+}
+
+.done-section summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--gray);
+    user-select: none;
+}
+
+.done-section summary:hover {
+    color: var(--primary);
+}
+
+.done-section .queue-table {
+    margin-top: 10px;
+}

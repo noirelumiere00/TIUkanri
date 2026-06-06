@@ -28,18 +28,18 @@ python app.py
 ブラウザで http://127.0.0.1:5000 を開きます。
 ポートを変えたい場合は `PORT=8000 python app.py`。
 
-## Google Colab で使う場合
+## Google Colab で使う場合（ngrok で外部公開）
 
-`pyngrok` で外部公開できます。
+同梱の **`opencampus_colab.ipynb`** を Colab で開き、上から順にセルを実行するだけです。
 
-```python
-!pip install pyngrok -q
-from pyngrok import ngrok
-public_url = ngrok.connect(5000)
-print(public_url)
-```
+1. ライブラリのインストール
+2. GitHub からリポジトリを取得（clone / pull）
+3. ngrok の authtoken を設定
+   （事前に https://dashboard.ngrok.com/get-started/your-authtoken で無料取得）
+4. アプリ起動 → 公開URLが表示される
 
-その後、別セルで `app.py` を起動してください。
+> ngrok は無料プランでも authtoken が必須です。公開URLは起動のたびに変わります。
+> `opencampus.db` はランタイム終了で消えるため、永続化したい場合は Google Drive をマウントしてください。
 
 ## 構成
 

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>待機列管理 | オープンキャンパス管理システム</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>📋 待機列管理</h1>
+        <div style="display:flex; align-items:center; gap:20px;">
+            <div class="clock" id="clock">--:--:--</div>
+            <nav>
+                <a href="{{ url_for('index') }}">トップ</a>
+                <a href="{{ url_for('table_management') }}">テーブル管理</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="layout">
+            <!-- 登録フォーム -->
+            <div class="panel">
+                <h2>新規登録</h2>
+                <form id="queue-form">
+                    <div class="form-group">
+                        <label for="ticket_number">番号札 <span style="color:var(--red)">*</span></label>
+                        <input type="text" id="ticket_number" required autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">性別</label>
+                        <select id="gender">
+                            <option value="">選択してください</option>
+                            <option value="男性">男性</option>
+                            <option value="女性">女性</option>
+                            <option value="その他">その他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="party_size">人数</label>
+                        <input type="number" id="party_size" min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="consultation_topic">相談内容</label>
+                        <input type="text" id="consultation_topic" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="other_notes">その他</label>
+                        <textarea id="other_notes"></textarea>
+                    </div>
+                    <button type="submit" class="btn-start">待機列に追加</button>
+                </form>
+            </div>
+
+            <!-- 待機列一覧 -->
+            <div class="panel">
+                <h2>待機列 <span id="queue-count" style="color:var(--gray); font-size:0.9rem;"></span></h2>
+                <div id="queue-container">
+                    <p class="empty-msg">読み込み中...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const LONG_WAIT_MIN = 30;
+        let serverOffset = 0;
+
+        async function syncTime() {
+            try {
+                const res = await fetch('/api/server_time');
+                const data = await res.json();
+                serverOffset = new Date(data.server_time).getTime() - Date.now();
+            } catch (e) {}
+        }
+        function serverNow() { return new Date(Date.now() + serverOffset); }
+
+        function tickClock() {
+            const now = serverNow();
+            document.getElementById('clock').textContent =
+                [now.getHours(), now.getMinutes(), now.getSeconds()]
+                    .map(n => String(n).padStart(2, '0')).join(':');
+        }
+
+        function showToast(msg, type) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast show ' + (type || '');
+            setTimeout(() => { t.className = 'toast'; }, 2500);
+        }
+
+        async function loadQueue() {
+            try {
+                const res = await fetch('/api/queue/list');
+                const items = await res.json();
+                renderQueue(items);
+            } catch (e) {}
+        }
+
+        function renderQueue(items) {
+            const container = document.getElementById('queue-container');
+            document.getElementById('queue-count').textContent = `（${items.length}組）`;
+
+            if (!items.length) {
+                container.innerHTML = '<p class="empty-msg">待機中の来場者はいません</p>';
+                return;
+            }
+
+            let rows = '';
+            items.forEach((item, idx) => {
+                const start = new Date(item.registered_time);
+                const waitMin = Math.max(0, Math.floor((serverNow() - start) / 60000));
+                const waitClass = waitMin >= LONG_WAIT_MIN ? 'wait-long' : '';
+                rows += `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td><strong>${item.ticket_number}</strong></td>
+                        <td>${item.gender || '-'}</td>
+                        <td>${item.party_size || '-'}</td>
+                        <td>${item.consultation_topic || '-'}</td>
+                        <td class="${waitClass}">${waitMin}分</td>
+                        <td><button class="btn-danger" onclick="removeItem(${item.id})">対応済</button></td>
+                    </tr>`;
+            });
+
+            container.innerHTML = `
+                <table class="queue-table">
+                    <thead>
+                        <tr>
+                            <th>順</th><th>番号札</th><th>性別</th><th>人数</th>
+                            <th>相談内容</th><th>待機</th><th></th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
+        }
+
+        async function removeItem(id) {
+            try {
+                const res = await fetch(`/api/queue/remove/${id}`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('対応済みにしました', 'success');
+                    loadQueue();
+                } else {
+                    showToast(data.error || '削除に失敗しました', 'error');
+                }
+            } catch (e) {
+                showToast('通信エラー', 'error');
+            }
+        }
+
+        document.getElementById('queue-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                ticket_number: document.getElementById('ticket_number').value,
+                gender: document.getElementById('gender').value,
+                party_size: parseInt(document.getElementById('party_size').value) || null,
+                consultation_topic: document.getElementById('consultation_topic').value,
+                other_notes: document.getElementById('other_notes').value,
+            };
+            try {
+                const res = await fetch('/api/queue/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`番号札 ${data.ticket_number} を追加しました`, 'success');
+                    e.target.reset();
+                    document.getElementById('party_size').value = 1;
+                    document.getElementById('ticket_number').focus();
+                    loadQueue();
+                } else {
+                    showToast(data.error || '追加に失敗しました', 'error');
+                }
+            } catch (err) {
+                showToast('通信エラー', 'error');
+            }
+        });
+
+        (async function init() {
+            await syncTime();
+            tickClock();
+            await loadQueue();
+            setInterval(tickClock, 1000);
+            setInterval(loadQueue, 5000);
+            setInterval(syncTime, 60000);
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+Flask>=3.0
+Flask-SQLAlchemy>=3.1
+pytz>=2024.1
+# 以下は Google Colab で外部公開（トンネリング）する場合のみ必要
+# pyngrok>=7.0

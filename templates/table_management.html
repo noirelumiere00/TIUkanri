@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>テーブル管理 | オープンキャンパス管理システム</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>🪑 テーブル管理</h1>
+        <div style="display:flex; align-items:center; gap:20px;">
+            <div class="clock" id="clock">--:--:--</div>
+            <nav>
+                <a href="{{ url_for('index') }}">トップ</a>
+                <a href="{{ url_for('queue_management') }}">待機列管理</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <p style="color:var(--gray); margin-top:8px;">
+            制限時間 <strong>15分</strong>。超過したブースは赤く点滅します。
+        </p>
+        <div class="table-grid" id="table-grid"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const LIMIT_MIN = 15;
+        let serverOffset = 0;
+
+        async function syncTime() {
+            try {
+                const res = await fetch('/api/server_time');
+                const data = await res.json();
+                serverOffset = new Date(data.server_time).getTime() - Date.now();
+            } catch (e) {}
+        }
+        function serverNow() { return new Date(Date.now() + serverOffset); }
+
+        function tickClock() {
+            const now = serverNow();
+            document.getElementById('clock').textContent =
+                [now.getHours(), now.getMinutes(), now.getSeconds()]
+                    .map(n => String(n).padStart(2, '0')).join(':');
+        }
+
+        function showToast(msg, type) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast show ' + (type || '');
+            setTimeout(() => { t.className = 'toast'; }, 2500);
+        }
+
+        let tables = [];
+
+        async function loadTables() {
+            try {
+                const res = await fetch('/api/table/list');
+                tables = await res.json();
+                render();
+            } catch (e) {}
+        }
+
+        function render() {
+            const grid = document.getElementById('table-grid');
+            grid.innerHTML = '';
+            tables.forEach(t => {
+                const card = document.createElement('div');
+                let statusClass = 'status-empty';
+                let buttons = '';
+                let elapsedHtml = '';
+
+                if (t.status === '使用中') {
+                    statusClass = 'status-busy';
+                    elapsedHtml = `<div class="elapsed" data-start="${t.start_time}">00:00</div>`;
+                    buttons = `<button class="btn-end" onclick="act('end', ${t.id})">終了</button>`;
+                } else if (t.status === '休憩中') {
+                    statusClass = 'status-break';
+                    buttons = `<button class="btn-resume" onclick="act('resume', ${t.id})">再開</button>`;
+                } else {
+                    buttons = `
+                        <button class="btn-start" onclick="act('start', ${t.id})">開始</button>
+                        <button class="btn-break" onclick="act('break', ${t.id})">休憩</button>`;
+                }
+
+                card.className = 'table-card ' + statusClass;
+                card.dataset.id = t.id;
+                card.innerHTML = `
+                    <div class="name">${t.name}</div>
+                    <span class="badge">${t.status}</span>
+                    ${elapsedHtml}
+                    <div class="btn-row">${buttons}</div>`;
+                grid.appendChild(card);
+            });
+            updateElapsed();
+        }
+
+        function updateElapsed() {
+            document.querySelectorAll('.elapsed').forEach(el => {
+                const start = new Date(el.dataset.start);
+                const diffMs = serverNow() - start;
+                const totalSec = Math.max(0, Math.floor(diffMs / 1000));
+                const min = Math.floor(totalSec / 60);
+                const sec = totalSec % 60;
+                el.textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+                const card = el.closest('.table-card');
+                if (min >= LIMIT_MIN) card.classList.add('over-time');
+                else card.classList.remove('over-time');
+            });
+        }
+
+        async function act(action, id) {
+            try {
+                const res = await fetch(`/api/table/${action}/${id}`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    await loadTables();
+                } else {
+                    showToast(data.error || '操作に失敗しました', 'error');
+                }
+            } catch (e) {
+                showToast('通信エラー', 'error');
+            }
+        }
+
+        (async function init() {
+            await syncTime();
+            tickClock();
+            await loadTables();
+            setInterval(tickClock, 1000);
+            setInterval(updateElapsed, 1000);
+            setInterval(loadTables, 5000);
+            setInterval(syncTime, 60000);
+        })();
+    </script>
+</body>
+</html>

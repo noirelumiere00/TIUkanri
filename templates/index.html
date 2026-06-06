@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>オープンキャンパス管理システム</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>🎓 オープンキャンパス管理システム</h1>
+        <div class="clock" id="clock">--:--:--</div>
+    </header>
+
+    <div class="container">
+        <div class="menu-grid">
+            <a class="menu-card" href="{{ url_for('table_management') }}">
+                <span class="icon">🪑</span>
+                <h2>テーブル管理</h2>
+                <p>相談ブースの開始・終了・休憩を管理</p>
+            </a>
+            <a class="menu-card" href="{{ url_for('queue_management') }}">
+                <span class="icon">📋</span>
+                <h2>待機列管理</h2>
+                <p>番号札・来場者の待機列を管理</p>
+            </a>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-box">
+                <div class="value" id="stat-count">-</div>
+                <div class="label">本日の対応件数</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" id="stat-avg">-</div>
+                <div class="label">平均対応時間（分）</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // サーバー時刻（JST）を基準にした時計
+        let serverOffset = 0;
+        async function syncTime() {
+            try {
+                const res = await fetch('/api/server_time');
+                const data = await res.json();
+                serverOffset = new Date(data.server_time).getTime() - Date.now();
+            } catch (e) { /* オフライン時は無視 */ }
+        }
+        function tick() {
+            const now = new Date(Date.now() + serverOffset);
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+                document.getElementById('stat-count').textContent = data.count;
+                document.getElementById('stat-avg').textContent = data.average;
+            } catch (e) { /* 無視 */ }
+        }
+
+        syncTime();
+        setInterval(tick, 1000);
+        tick();
+        loadStats();
+        setInterval(loadStats, 10000);
+        setInterval(syncTime, 60000);
+    </script>
+</body>
+</html>

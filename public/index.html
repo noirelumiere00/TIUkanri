@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>オープンキャンパス個別相談管理システム</title>
+<style>
+  :root{
+    --bg:#eef2f7; --surface:#fff; --ink:#1f2933; --muted:#667085; --line:#e2e8f0;
+    --primary:#1f6feb; --primary-d:#1a5fce;
+    --ok:#1e9e57; --ok-d:#188049;
+    --warn:#e0a106; --warn-d:#c08c05;
+    --danger:#d64045; --danger-d:#bb3338;
+    --info:#0f9bb0; --info-d:#0c8497;
+    --radius:12px; --shadow:0 1px 2px rgba(16,24,40,.06),0 4px 16px rgba(16,24,40,.06);
+    font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI",Meiryo,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);line-height:1.55;-webkit-font-smoothing:antialiased;}
+  .app{max-width:1100px;margin:0 auto;padding:20px 18px 64px;}
+  h1{font-size:22px;margin:6px 0 16px;font-weight:800;}
+  h2{font-size:17px;margin:0 0 14px;font-weight:700;}
+  h3{font-size:15px;margin:0 0 8px;font-weight:700;line-height:1.35;}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:9px;
+    cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#fff;background:var(--primary);
+    padding:10px 16px;min-height:42px;transition:background .15s,transform .05s;line-height:1.2;text-decoration:none;}
+  .btn:hover{background:var(--primary-d);} .btn:active{transform:translateY(1px);}
+  .btn-success{background:var(--ok);} .btn-success:hover{background:var(--ok-d);}
+  .btn-danger{background:var(--danger);} .btn-danger:hover{background:var(--danger-d);}
+  .btn-warning{background:var(--warn);} .btn-warning:hover{background:var(--warn-d);}
+  .btn-info{background:var(--info);} .btn-info:hover{background:var(--info-d);}
+  .btn-secondary{background:#e7ebf1;color:#334155;} .btn-secondary:hover{background:#dbe1ea;}
+  .btn-ghost{background:transparent;color:var(--muted);min-height:auto;padding:6px 8px;font-weight:600;font-size:13px;}
+  .btn-ghost:hover{background:#e7ebf1;color:#334155;}
+  .btn-large{font-size:17px;padding:20px 24px;min-height:auto;flex-direction:column;gap:6px;}
+  .btn-large small{font-weight:600;opacity:.85;font-size:12px;}
+  .btn:focus-visible{outline:3px solid #93c5fd;outline-offset:2px;}
+  .btn[disabled]{opacity:.5;cursor:not-allowed;}
+
+  /* ログイン */
+  #view-login{display:none;min-height:70vh;align-items:center;justify-content:center;}
+  #view-login.active{display:flex;}
+  .login-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:32px;
+    box-shadow:var(--shadow);width:100%;max-width:380px;}
+  .login-card h1{font-size:19px;margin:0 0 6px;}
+  .login-card p{font-size:13px;color:var(--muted);margin:0 0 20px;}
+  .login-card input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:9px;
+    font-family:inherit;font-size:16px;margin-bottom:12px;}
+  .login-card input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(31,111,235,.15);}
+  .login-card .btn{width:100%;}
+  .login-error{color:var(--danger);font-size:13px;font-weight:700;margin-bottom:12px;display:none;}
+  .login-error.show{display:block;}
+
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap;}
+  .topbar .spacer{flex:1;}
+  .conn{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:#e3f4ea;color:var(--ok-d);white-space:nowrap;}
+  .conn.bad{background:#fbe3e4;color:var(--danger-d);}
+
+  .menu{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:8px 0 24px;}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
+  .stat-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);}
+  .stat-card .label{font-size:12px;color:var(--muted);font-weight:600;}
+  .stat-card .num{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-top:6px;font-variant-numeric:tabular-nums;}
+  .stat-card .unit{font-size:13px;color:var(--muted);font-weight:600;margin-left:3px;}
+  .section-head{margin:28px 0 12px;}
+
+  .table-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:8px;}
+  .table-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 16px 16px 18px;box-shadow:var(--shadow);border-left:5px solid var(--line);
+    display:flex;flex-direction:column;gap:6px;}
+  .table-card.s-free{border-left-color:var(--ok);}
+  .table-card.s-busy{border-left-color:var(--primary);}
+  .table-card.s-rest{border-left-color:var(--warn);}
+  .table-card .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+  .table-card .actions .btn{flex:1;padding:9px 10px;min-height:38px;font-size:13px;}
+  .status-badge{align-self:flex-start;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;}
+  .s-free .status-badge{background:#e3f4ea;color:var(--ok-d);}
+  .s-busy .status-badge{background:#e4eefc;color:var(--primary-d);}
+  .s-rest .status-badge{background:#fbf0d4;color:var(--warn-d);}
+  .time{font-size:13px;color:var(--muted);margin:2px 0;}
+  .elapsed{font-size:18px;font-weight:700;color:var(--ok);font-variant-numeric:tabular-nums;}
+  .progress-bar{height:8px;background:#eef1f5;border-radius:999px;overflow:hidden;margin:4px 0 2px;}
+  .progress-fill{height:100%;width:0;background:var(--ok);border-radius:999px;transition:width .8s linear,background .3s;}
+  .table-card.overtime{border-color:var(--danger);border-left-color:var(--danger);box-shadow:0 0 0 3px rgba(214,64,69,.15);}
+
+  .tabs{display:flex;gap:5px;margin:18px 0 0;flex-wrap:wrap;border-bottom:2px solid var(--line);padding-bottom:10px;}
+  .tab-btn{padding:9px 14px;background:#f1f4f8;border:none;border-radius:9px 9px 0 0;cursor:pointer;
+    font-family:inherit;font-size:13px;font-weight:700;color:#556;display:inline-flex;align-items:center;gap:6px;}
+  .tab-btn:hover{background:#e4e9f0;}
+  .tab-btn.active{background:var(--primary);color:#fff;}
+  .badge{display:inline-block;background:var(--danger);color:#fff;border-radius:999px;padding:1px 8px;
+    font-size:11px;min-width:20px;text-align:center;line-height:1.5;}
+  .tab-btn.active .badge{background:#fff;color:var(--primary);}
+  .tab-pane{display:none;padding-top:18px;}
+  .tab-pane.active{display:block;}
+  .topic-count{font-weight:800;color:var(--primary);}
+
+  .queue-item{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:10px;}
+  .queue-info{display:flex;align-items:center;gap:14px;flex:1;min-width:0;flex-wrap:wrap;}
+  .number{font-size:20px;font-weight:800;background:#f1f4f8;border-radius:10px;padding:6px 12px;
+    min-width:84px;text-align:center;font-variant-numeric:tabular-nums;}
+  .info-detail{flex:1;min-width:120px;font-size:14px;}
+  .consultation-badge{display:inline-block;background:#e4eefc;color:var(--primary-d);font-size:12px;
+    font-weight:700;padding:2px 10px;border-radius:999px;}
+  .waiting-time{font-size:14px;font-weight:700;color:var(--ok);white-space:nowrap;font-variant-numeric:tabular-nums;}
+  .no-queue{color:var(--muted);text-align:center;padding:32px 0;font-size:14px;}
+
+  .modal{position:fixed;inset:0;background:rgba(16,24,40,.5);display:none;align-items:center;justify-content:center;padding:18px;z-index:50;}
+  .modal.open{display:flex;}
+  .modal-content{background:var(--surface);border-radius:16px;padding:24px;width:100%;max-width:440px;
+    max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(16,24,40,.3);}
+  .modal-content label{display:block;font-size:13px;font-weight:700;margin:14px 0 5px;}
+  .modal-content input,.modal-content select,.modal-content textarea{width:100%;padding:10px 12px;
+    border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:16px;background:#fff;color:var(--ink);}
+  .modal-content input:focus,.modal-content select:focus,.modal-content textarea:focus{
+    outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(31,111,235,.15);}
+  .modal-content textarea{resize:vertical;}
+  .required{color:var(--danger);}
+  .form-actions{display:flex;gap:10px;margin-top:22px;}
+  .form-actions .btn{flex:1;}
+
+  .footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .footer .note{font-size:12px;color:var(--muted);}
+
+  @media (max-width:560px){
+    .menu{grid-template-columns:1fr;}
+    .stat-grid{grid-template-columns:1fr 1fr;}
+    h1{font-size:19px;}
+    .number{min-width:64px;font-size:18px;}
+  }
+  @media (prefers-reduced-motion:reduce){ .progress-fill{transition:none;} }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== ログイン ===== -->
+  <section id="view-login" class="view active">
+    <div class="login-card">
+      <h1>オープンキャンパス個別相談管理システム</h1>
+      <p>スタッフ用のあいことばを入力してください。</p>
+      <div class="login-error" id="login-error"></div>
+      <input type="password" id="login-pw" placeholder="あいことば" autocomplete="current-password">
+      <button class="btn" id="login-btn">ログイン</button>
+    </div>
+  </section>
+
+  <!-- ===== トップ ===== -->
+  <section id="view-home" class="view">
+    <div class="topbar">
+      <h1 style="margin:0;">オープンキャンパス個別相談管理システム</h1>
+      <span class="spacer"></span>
+      <span class="conn" id="conn-home">接続中</span>
+    </div>
+    <div class="menu">
+      <a class="btn btn-primary btn-large" data-nav="tables">テーブル管理<small>相談ブースの開始・終了・経過時間</small></a>
+      <a class="btn btn-success btn-large" data-nav="queue">待機列管理<small>受付・相談内容別の待機状況</small></a>
+    </div>
+
+    <div class="section-head"><h2>本日の統計</h2></div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="label">相談件数</div><div class="num"><span id="stat-count">0</span><span class="unit">件</span></div></div>
+      <div class="stat-card"><div class="label">平均相談時間</div><div class="num"><span id="stat-average">0</span><span class="unit">分</span></div></div>
+      <div class="stat-card"><div class="label">現在の待機組数</div><div class="num"><span id="stat-waiting">0</span><span class="unit">組</span></div></div>
+      <div class="stat-card"><div class="label">本日の案内完了</div><div class="num"><span id="stat-guided">0</span><span class="unit">組</span></div></div>
+      <div class="stat-card"><div class="label">平均待ち時間</div><div class="num"><span id="stat-waitavg">0</span><span class="unit">分</span></div></div>
+      <div class="stat-card"><div class="label">使用中テーブル</div><div class="num"><span id="stat-busy">0</span><span class="unit">卓</span></div></div>
+    </div>
+
+    <div class="footer">
+      <span class="note">データは大学のサーバーに保存され、PCとiPadで自動的に共有されます。</span>
+      <span>
+        <button class="btn btn-ghost" data-action="export-queue">待機列の履歴をCSVで保存</button>
+        <button class="btn btn-ghost" data-action="export-table">相談履歴をCSVで保存</button>
+        <button class="btn btn-ghost" data-action="reset">全データをリセット</button>
+      </span>
+    </div>
+  </section>
+
+  <!-- ===== テーブル管理 ===== -->
+  <section id="view-tables" class="view">
+    <div class="topbar">
+      <button class="btn btn-secondary" data-nav="home">← 戻る</button>
+      <h1 style="margin:0;">テーブル管理</h1>
+      <span class="spacer"></span>
+      <span class="conn" id="conn-tables">接続中</span>
+    </div>
+    <div class="table-grid" id="table-grid"></div>
+  </section>
+
+  <!-- ===== 待機列管理 ===== -->
+  <section id="view-queue" class="view">
+    <div class="topbar">
+      <button class="btn btn-secondary" data-nav="home">← 戻る</button>
+      <h1 style="margin:0;">待機列管理</h1>
+      <span class="spacer"></span>
+      <span class="conn" id="conn-queue">接続中</span>
+      <button class="btn btn-primary" data-action="open-form">＋ 新規受付</button>
+    </div>
+    <div class="tabs" id="tabs"></div>
+    <div id="tab-content"></div>
+  </section>
+
+  <audio id="alarmSound" preload="auto">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+  </audio>
+
+  <div id="addForm" class="modal">
+    <div class="modal-content">
+      <h2>新規受付</h2>
+      <form id="queueForm">
+        <label>番号札 <span class="required">*</span></label>
+        <input type="text" id="f-ticket" placeholder="例: 101" autocomplete="off">
+        <label>性別 <span class="required">*</span></label>
+        <select id="f-gender">
+          <option value="">選択してください</option>
+          <option value="男">男</option><option value="女">女</option><option value="両方">両方</option>
+        </select>
+        <label>人数 <span class="required">*</span></label>
+        <input type="number" id="f-party" min="1" value="1">
+        <label>相談内容 <span class="required">*</span></label>
+        <select id="f-topic">
+          <option value="">選択してください</option>
+          <optgroup label="学部">
+            <option value="商学部">商学部</option>
+            <option value="経済学部">経済学部</option>
+            <option value="言語コミュニケーション学部">言語コミュニケーション学部</option>
+            <option value="国際関係学部">国際関係学部</option>
+            <option value="人間社会学部">人間社会学部</option>
+            <option value="医療健康学部">医療健康学部</option>
+          </optgroup>
+          <optgroup label="事務局・センター">
+            <option value="入試課">入試課</option>
+            <option value="国際交流課">国際交流課</option>
+            <option value="学生課">学生課</option>
+            <option value="キャリアセンター">キャリアセンター</option>
+            <option value="スポーツ推進課">スポーツ推進課</option>
+          </optgroup>
+        </select>
+        <label>その他（任意）</label>
+        <textarea id="f-notes" rows="3" placeholder="例: 保護者同伴、車椅子対応など"></textarea>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="f-submit">登録</button>
+          <button type="button" class="btn btn-secondary" data-action="close-form">キャンセル</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<script>
+"use strict";
+
+var API = "api.cgi";
+var TOPICS = [
+  ["商学部","商学部"], ["経済学部","経済学部"],
+  ["言語コミュニケーション学部","言語コミュ"], ["国際関係学部","国際関係"],
+  ["人間社会学部","人間社会"], ["医療健康学部","医療健康"],
+  ["入試課","入試課"], ["国際交流課","国際交流課"], ["学生課","学生課"],
+  ["キャリアセンター","キャリア"], ["スポーツ推進課","スポーツ"]
+];
+var STATUS_CLASS = { "空き":"s-free", "使用中":"s-busy", "休憩中":"s-rest" };
+
+var token = null;
+var state = null;          // サーバーから受け取った最新の状態
+var serverOffset = 0;      // サーバー時刻 - 端末時刻（端末の時計ズレを吸収）
+var timeLimit = 15;
+var activeTab = "all";
+var currentView = "login";
+var alarmFired = {};
+var lastRenderKey = "";
+var connected = true;
+
+function $(id){ return document.getElementById(id); }
+function esc(s){
+  return String(s == null ? "" : s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function cssEsc(s){ return String(s).replace(/(["'\\])/g, "\\$1"); }
+function nowServerMs(){ return Date.now() + serverOffset; }
+function minutesSince(epochSec){ return Math.floor((nowServerMs() - epochSec*1000) / 60000); }
+
+/* ---------- サーバーとの通信 ---------- */
+function api(params){
+  var body = [];
+  for (var k in params){
+    if (params[k] === undefined || params[k] === null) continue;
+    body.push(encodeURIComponent(k) + "=" + encodeURIComponent(params[k]));
+  }
+  return fetch(API, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" },
+    body: body.join("&")
+  }).then(function(r){ return r.json(); });
+}
+
+function setConnected(ok){
+  connected = ok;
+  ["home","tables","queue"].forEach(function(v){
+    var el = $("conn-" + v);
+    if (!el) return;
+    el.textContent = ok ? "接続中" : "接続が切れています";
+    el.classList.toggle("bad", !ok);
+  });
+}
+
+function applyState(s){
+  if (!s || !s.ok){
+    if (s && /ログイン/.test(s.error || "")) { logout(); return; }
+    setConnected(false);
+    return;
+  }
+  setConnected(true);
+  state = s;
+  timeLimit = s.limit || 15;
+  serverOffset = s.now * 1000 - Date.now();
+  render();
+}
+
+function poll(){
+  if (!token) return;
+  api({ action:"state", token: token })
+    .then(applyState)
+    .catch(function(){ setConnected(false); });
+}
+
+/* 操作 → すぐ結果を反映 */
+function act(params, onError){
+  if (!token) return;
+  params.token = token;
+  api(params).then(function(s){
+    if (!s.ok){
+      if (/ログイン/.test(s.error || "")) { logout(); return; }
+      alert("⚠️ " + s.error);
+      poll();
+      if (onError) onError();
+      return;
+    }
+    applyState(s);
+  }).catch(function(){
+    setConnected(false);
+    alert("⚠️ サーバーにつながりません。電波の状態を確認してください。");
+  });
+}
+
+/* ---------- ログイン ---------- */
+function login(){
+  var pw = $("login-pw").value;
+  if (!pw) return;
+  $("login-btn").disabled = true;
+  api({ action:"login", password: pw }).then(function(r){
+    $("login-btn").disabled = false;
+    if (!r.ok){
+      var e = $("login-error");
+      e.textContent = "❌ " + (r.error || "ログインできません");
+      e.classList.add("show");
+      $("login-pw").value = "";
+      $("login-pw").focus();
+      return;
+    }
+    token = r.token;
+    try { sessionStorage.setItem("oc_token", token); } catch(e){}
+    $("login-pw").value = "";
+    $("login-error").classList.remove("show");
+    showView("home");
+    poll();
+  }).catch(function(){
+    $("login-btn").disabled = false;
+    var e = $("login-error");
+    e.textContent = "❌ サーバーにつながりません";
+    e.classList.add("show");
+  });
+}
+
+function logout(){
+  token = null;
+  state = null;
+  try { sessionStorage.removeItem("oc_token"); } catch(e){}
+  showView("login");
+}
+
+/* ---------- 画面切替 ---------- */
+function showView(name){
+  currentView = name;
+  ["login","home","tables","queue"].forEach(function(v){
+    $("view-" + v).classList.toggle("active", v === name);
+  });
+  lastRenderKey = "";
+  if (state) render();
+  window.scrollTo(0, 0);
+  if (name === "login") setTimeout(function(){ $("login-pw").focus(); }, 50);
+}
+
+/* ---------- 描画 ---------- */
+function render(){
+  if (!state) return;
+  renderStats();
+  var key = JSON.stringify({ t: state.tables, q: state.queue, v: currentView, a: activeTab });
+  if (key !== lastRenderKey){
+    lastRenderKey = key;
+    if (currentView === "tables") renderTables();
+    if (currentView === "queue")  renderQueueView();
+  }
+  tick();
+}
+
+function renderStats(){
+  $("stat-count").textContent   = state.stats.count;
+  $("stat-average").textContent = state.stats.average;
+  $("stat-waiting").textContent = state.queue.length;
+  $("stat-guided").textContent  = state.stats.guided;
+  $("stat-waitavg").textContent = state.stats.wait_avg;
+  var busy = state.tables.filter(function(t){ return t.status === "使用中"; }).length;
+  $("stat-busy").textContent = busy;
+}
+
+function renderTables(){
+  $("table-grid").innerHTML = state.tables.map(function(t){
+    var cls = STATUS_CLASS[t.status] || "";
+    var h = '<h3>' + esc(t.name) + '</h3><span class="status-badge">' + esc(t.status) + '</span>';
+    if (t.status === "使用中"){
+      h += '<p class="time">経過時間: <span class="elapsed" data-start="' + t.start + '" data-id="' + t.id + '">0分</span></p>'
+         + '<div class="progress-bar"><div class="progress-fill" id="progress-' + t.id + '"></div></div>'
+         + '<div class="actions"><button class="btn btn-danger" data-action="end" data-id="' + t.id + '">終了</button></div>';
+    } else if (t.status === "空き"){
+      h += '<div class="actions">'
+         + '<button class="btn btn-success" data-action="start" data-id="' + t.id + '">開始</button>'
+         + '<button class="btn btn-warning" data-action="break" data-id="' + t.id + '">休憩設定</button></div>';
+    } else {
+      h += '<div class="actions"><button class="btn btn-info" data-action="resume" data-id="' + t.id + '">休憩解除</button></div>';
+    }
+    return '<div class="table-card ' + cls + '" id="table-' + t.id + '">' + h + '</div>';
+  }).join("");
+}
+
+function queueItemHtml(item, withTopic){
+  var notes = item.other_notes
+    ? '<div style="margin-top:5px;color:#666;"><small>' + esc(item.other_notes) + '</small></div>' : "";
+  var badge = withTopic
+    ? '<div style="margin-top:5px;"><span class="consultation-badge">' + esc(item.consultation_topic) + '</span></div>' : "";
+  return '<div class="queue-item"><div class="queue-info">'
+    + '<span class="number">No.' + esc(String(item.ticket_number)) + '</span>'
+    + '<div class="info-detail"><div><strong>' + esc(item.gender) + '</strong> | ' + esc(item.party_size) + '名</div>'
+    + badge + notes + '</div>'
+    + '<span class="waiting-time" data-reg="' + item.registered + '">待機中...</span>'
+    + '</div>'
+    + '<div style="display:flex;flex-direction:column;gap:6px;">'
+    + '<button class="btn btn-success" data-action="guide" data-id="' + item.id + '">案内完了</button>'
+    + '<button class="btn btn-ghost" data-action="cancel" data-id="' + item.id + '" style="font-size:12px;">取消</button>'
+    + '</div></div>';
+}
+
+function renderQueueView(){
+  var tabs = '<button class="tab-btn' + (activeTab==="all"?" active":"") + '" data-tab="all">すべて <span class="badge">'
+           + state.queue.length + '</span></button>';
+  TOPICS.forEach(function(t){
+    var c = state.queue.filter(function(q){ return q.consultation_topic === t[0]; }).length;
+    tabs += '<button class="tab-btn' + (activeTab===t[0]?" active":"") + '" data-tab="' + esc(t[0]) + '">'
+          + esc(t[1]) + ' <span class="badge">' + c + '</span></button>';
+  });
+  $("tabs").innerHTML = tabs;
+
+  var pane;
+  if (activeTab === "all"){
+    pane = '<div class="tab-pane active"><h2>すべての待機列 - 待機中: <span class="topic-count">'
+         + state.queue.length + '</span>組</h2>'
+         + (state.queue.length === 0
+             ? '<p class="no-queue">現在待機中の方はいません</p>'
+             : state.queue.map(function(q){ return queueItemHtml(q, true); }).join(""))
+         + '</div>';
+  } else {
+    var f = state.queue.filter(function(q){ return q.consultation_topic === activeTab; });
+    pane = '<div class="tab-pane active"><h2>' + esc(activeTab) + ' - 待機中: <span class="topic-count">'
+         + f.length + '</span>組</h2>'
+         + (f.length === 0
+             ? '<p class="no-queue">現在待機中の方はいません</p>'
+             : f.map(function(q){ return queueItemHtml(q, false); }).join(""))
+         + '</div>';
+  }
+  $("tab-content").innerHTML = pane;
+}
+
+/* 1秒ごと: 経過時間と待機時間だけを更新（画面は作り直さない） */
+function tick(){
+  document.querySelectorAll(".elapsed").forEach(function(el){
+    var start = Number(el.dataset.start);
+    if (!start) return;
+    var id = el.dataset.id;
+    var m = minutesSince(start);
+    el.textContent = m + "分";
+
+    var card = $("table-" + id);
+    var bar  = $("progress-" + id);
+    if (bar){
+      bar.style.width = Math.min((m / timeLimit) * 100, 100) + "%";
+      bar.style.background = m < 10 ? "var(--ok)" : (m < timeLimit ? "var(--warn)" : "var(--danger)");
+    }
+    if (m >= timeLimit){
+      el.style.color = "var(--danger)"; el.style.fontWeight = "bold"; el.style.fontSize = "22px";
+      if (card) card.classList.add("overtime");
+      var key = id + ":" + start;
+      if (!alarmFired[key]){ alarmFired[key] = 1; triggerAlarm(id); }
+    } else if (m >= 12){
+      el.style.color = "var(--warn)"; el.style.fontWeight = "bold"; el.style.fontSize = "18px";
+      if (card) card.classList.remove("overtime");
+    } else {
+      el.style.color = "var(--ok)"; el.style.fontWeight = "700"; el.style.fontSize = "18px";
+      if (card) card.classList.remove("overtime");
+    }
+  });
+
+  document.querySelectorAll(".waiting-time").forEach(function(el){
+    var reg = Number(el.dataset.reg);
+    if (!reg) return;
+    var m = minutesSince(reg);
+    el.textContent = "待機: " + m + "分";
+    if (m > 10)      { el.style.color = "var(--danger)"; el.style.fontWeight = "bold"; }
+    else if (m > 5)  { el.style.color = "var(--warn)";   el.style.fontWeight = "bold"; }
+    else             { el.style.color = "var(--ok)";     el.style.fontWeight = "600"; }
+  });
+}
+
+function triggerAlarm(tableId){
+  var audio = $("alarmSound");
+  var n = 0;
+  var iv = setInterval(function(){
+    if (n < 3){
+      if (audio){ audio.currentTime = 0; audio.play().catch(function(){}); }
+      n++;
+    } else clearInterval(iv);
+  }, 800);
+  if ("Notification" in window && Notification.permission === "granted"){
+    new Notification("⚠️ 時間超過", { body: "テーブル" + tableId + "が" + timeLimit + "分を超過しました！", requireInteraction: true });
+  }
+  alert("⚠️ テーブル" + tableId + "が" + timeLimit + "分を超過しました！");
+}
+
+/* ---------- 受付フォーム ---------- */
+function openForm(){
+  $("addForm").classList.add("open");
+  setTimeout(function(){ $("f-ticket").focus(); }, 100);
+}
+function closeForm(){
+  $("addForm").classList.remove("open");
+  $("queueForm").reset();
+}
+function submitQueue(){
+  var d = {
+    action: "queue_add",
+    ticket_number: $("f-ticket").value.trim(),
+    gender: $("f-gender").value,
+    party_size: parseInt($("f-party").value, 10) || 1,
+    consultation_topic: $("f-topic").value,
+    other_notes: $("f-notes").value.trim()
+  };
+  if (!d.ticket_number){ alert("❌ 番号札を入力してください"); return; }
+  if (!d.gender){ alert("❌ 性別を選択してください"); return; }
+  if (!d.consultation_topic){ alert("❌ 相談内容を選択してください"); return; }
+
+  $("f-submit").disabled = true;
+  var ticket = d.ticket_number;
+  api(Object.assign({ token: token }, d)).then(function(s){
+    $("f-submit").disabled = false;
+    if (!s.ok){ alert("❌ " + s.error); return; }
+    applyState(s);
+    closeForm();
+    alert("✅ 番号札 " + ticket + " を登録しました");
+  }).catch(function(){
+    $("f-submit").disabled = false;
+    alert("⚠️ サーバーにつながりません。もう一度お試しください。");
+  });
+}
+
+/* ---------- イベント ---------- */
+document.addEventListener("click", function(e){
+  var nav = e.target.closest("[data-nav]");
+  if (nav){ showView(nav.dataset.nav); return; }
+
+  var tab = e.target.closest("[data-tab]");
+  if (tab){ activeTab = tab.dataset.tab; lastRenderKey = ""; render(); return; }
+
+  var a = e.target.closest("[data-action]");
+  if (!a) return;
+  var id = a.dataset.id ? parseInt(a.dataset.id, 10) : null;
+
+  switch (a.dataset.action){
+    case "start":  act({ action:"start",  id:id }); break;
+    case "end":    if (confirm("相談を終了しますか？")) act({ action:"end", id:id }); break;
+    case "break":  if (confirm("休憩中に設定しますか？")) act({ action:"break", id:id }); break;
+    case "resume": act({ action:"resume", id:id }); break;
+    case "guide":  if (confirm("この方を案内完了としますか？")) act({ action:"queue_remove", id:id }); break;
+    case "cancel": if (confirm("この方を取消（相談せずに帰られた）としますか？\n平均待ち時間の集計からは除かれます。")) act({ action:"queue_cancel", id:id }); break;
+    case "open-form":  openForm(); break;
+    case "close-form": closeForm(); break;
+    case "export-table":
+      if (!token) return;
+      window.location = API + "?action=export&type=table&token=" + encodeURIComponent(token);
+      break;
+    case "export-queue":
+      if (!token) return;
+      window.location = API + "?action=export&type=queue&token=" + encodeURIComponent(token);
+      break;
+    case "reset":
+      if (confirm("テーブル・待機列・本日の統計をすべて初期化します。\n他の端末のデータも消えます。よろしいですか？")){
+        alarmFired = {};
+        act({ action:"reset" });
+      }
+      break;
+  }
+});
+
+$("login-btn").addEventListener("click", login);
+$("login-pw").addEventListener("keydown", function(e){ if (e.key === "Enter") login(); });
+$("queueForm").addEventListener("submit", function(e){ e.preventDefault(); submitQueue(); });
+$("addForm").addEventListener("click", function(e){ if (e.target === this) closeForm(); });
+document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeForm(); });
+
+/* ---------- 起動 ---------- */
+try { token = sessionStorage.getItem("oc_token"); } catch(e){}
+
+if ("Notification" in window && Notification.permission === "default"){
+  Notification.requestPermission();
+}
+
+if (token){ showView("home"); poll(); }
+else { showView("login"); }
+
+setInterval(poll, 2500);   // 2.5秒ごとにサーバーから最新の状態を取得
+setInterval(tick, 1000);   // 1秒ごとに経過時間を更新
+</script>
+</body>
+</html>

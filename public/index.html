@@ -9,9 +9,9 @@
   :root{
     --bg:#eef2f7; --surface:#fff; --ink:#1f2933; --muted:#667085; --line:#e2e8f0;
     --primary:#1f6feb; --primary-d:#1a5fce;
-    --ok:#1e9e57; --ok-d:#188049;
-    --warn:#e0a106; --warn-d:#c08c05;
-    --danger:#d64045; --danger-d:#bb3338;
+    --ok:#1e9e57; --ok-d:#188049; --ok-bg:#e3f4ea; --ok-line:#a9d9bd;
+    --warn:#e0a106; --warn-d:#c08c05; --warn-line:#eac36b;
+    --danger:#d64045; --danger-d:#bb3338; --danger-bg:#fbe3e4; --danger-line:#eba3a6;
     --info:#0f9bb0; --info-d:#0c8497;
     --radius:12px; --shadow:0 1px 2px rgba(16,24,40,.06),0 4px 16px rgba(16,24,40,.06);
     font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI",Meiryo,system-ui,sans-serif;
@@ -69,6 +69,40 @@
   .section-head{margin:28px 0 12px;}
 
   .table-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:8px;}
+  /* ===== 配置図レイアウト ===== */
+  .venue-head{display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px;}
+  .venue-head h2{font-size:15px;font-weight:700;margin:0;}
+  .venue-head .cnt{font-size:12px;color:var(--muted);font-weight:600;}
+  .seat{display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer;transition:transform .08s,box-shadow .12s;-webkit-tap-highlight-color:transparent;}
+  .seat:active{transform:scale(.97);}
+  .seat .sn{font-size:12px;color:var(--muted);font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+  .seat .se{font-size:15px;font-weight:800;line-height:1.25;font-variant-numeric:tabular-nums;}
+  .seat .sp{height:5px;width:100%;background:#eef1f5;border-radius:999px;overflow:hidden;margin-top:4px;}
+  .seat .sp>i{display:block;height:100%;width:0;background:var(--ok);border-radius:999px;transition:width .8s linear,background .3s;}
+  .seat.free{background:var(--ok-bg);border-color:var(--ok-line);}
+  .seat.free .sn,.seat.free .se{color:var(--ok);}
+  .seat.busy .se{color:var(--ok);}
+  .seat.warn{border-color:var(--warn-line);}
+  .seat.warn .se{color:var(--warn-d);}
+  .seat.over{background:var(--danger-bg);border-color:var(--danger-line);box-shadow:0 0 0 2px rgba(214,64,69,.15);}
+  .seat.over .sn,.seat.over .se{color:var(--danger);}
+  .seat.rest{opacity:.5;}
+  .rooms{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .room{background:var(--surface);border:1.5px solid #cfd6e0;border-radius:10px;padding:30px 12px 14px;position:relative;}
+  .rno{position:absolute;left:12px;top:8px;font-size:14px;font-weight:800;color:var(--muted);}
+  .rtag{position:absolute;right:12px;top:9px;font-size:11px;font-weight:600;color:#a08a3c;background:#fdf3d8;border:1px dashed #e0c778;border-radius:4px;padding:2px 8px;}
+  .rsub{margin:4px 0 8px;font-size:12px;font-weight:700;color:var(--muted);}
+  .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
+  .room .seat{min-height:60px;padding:7px 5px;}
+  .commons{position:relative;background:var(--surface);border:1.5px solid #cfd6e0;border-radius:10px;height:470px;}
+  .commons .zone{position:absolute;border-radius:8px;}
+  .commons .zlab{position:absolute;font-size:12px;font-weight:700;white-space:nowrap;}
+  .commons .seat{position:absolute;}
+  .z-green{background:var(--ok-bg);border:1.5px solid var(--ok);}
+  .z-blue{background:#e4eefc;border:1.5px solid var(--primary);}
+  .z-orange{background:#fdefdd;border:1.5px solid #d98324;}
+  .z-purple{background:#efe7fa;border:1.5px solid #7d4ec4;}
+  @media (max-width:560px){ .rooms{grid-template-columns:1fr;} .commons{height:auto;} }
   .table-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
     padding:16px 16px 16px 18px;box-shadow:var(--shadow);border-left:5px solid var(--line);
     display:flex;flex-direction:column;gap:6px;}
@@ -120,6 +154,16 @@
   .modal-content input:focus,.modal-content select:focus,.modal-content textarea:focus{
     outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(31,111,235,.15);}
   .modal-content textarea{resize:vertical;}
+  .seat-sheet{max-width:360px;text-align:left;}
+  .seat-name{font-size:20px;font-weight:800;margin-bottom:6px;}
+  .seat-status{font-size:13px;font-weight:700;padding:3px 12px;border-radius:999px;display:inline-block;margin-bottom:16px;}
+  .seat-status.free{background:var(--ok-bg);color:var(--ok-d);}
+  .seat-status.busy{background:#e4eefc;color:var(--primary-d);}
+  .seat-status.rest{background:#fbf0d4;color:var(--warn-d);}
+  .seat-elapsed{font-size:15px;color:var(--muted);margin-bottom:16px;}
+  .seat-elapsed b{color:var(--ink);font-size:22px;font-variant-numeric:tabular-nums;}
+  .seat-btns{display:flex;flex-direction:column;gap:10px;}
+  .seat-btns .btn{min-height:50px;font-size:15px;padding:14px;border-radius:10px;}
   .required{color:var(--danger);}
   .form-actions{display:flex;gap:10px;margin-top:22px;}
   .form-actions .btn{flex:1;}
@@ -191,7 +235,8 @@
       <span class="spacer"></span>
       <span class="conn" id="conn-tables">接続中</span>
     </div>
-    <div class="table-grid" id="table-grid"></div>
+    <div id="floor-staff"></div>
+    <div id="floor-teacher"></div>
   </section>
 
   <!-- ===== 待機列管理 ===== -->
@@ -210,6 +255,16 @@
   <audio id="alarmSound" preload="auto">
     <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
   </audio>
+
+  <!-- 卓タップ時の操作モーダル -->
+  <div id="seatModal" class="modal">
+    <div class="modal-content seat-sheet">
+      <div class="seat-name" id="sm-name">&nbsp;</div>
+      <span class="seat-status" id="sm-status">&nbsp;</span>
+      <div class="seat-elapsed" id="sm-elapsed" style="display:none;">経過時間 <b id="sm-min">0</b> 分</div>
+      <div class="seat-btns" id="sm-btns"></div>
+    </div>
+  </div>
 
   <div id="addForm" class="modal">
     <div class="modal-content">
@@ -236,11 +291,12 @@
             <option value="医療健康学部">医療健康学部</option>
           </optgroup>
           <optgroup label="事務局・センター">
-            <option value="入試課">入試課</option>
-            <option value="国際交流課">国際交流課</option>
-            <option value="学生課">学生課</option>
+            <option value="入試">入試</option>
+            <option value="Eトラ入試">Eトラ入試</option>
+            <option value="留学">留学</option>
+            <option value="学生生活">学生生活</option>
             <option value="キャリアセンター">キャリアセンター</option>
-            <option value="スポーツ推進課">スポーツ推進課</option>
+            <option value="強化クラブ">強化クラブ</option>
           </optgroup>
         </select>
         <label>その他（任意）</label>
@@ -263,10 +319,25 @@ var TOPICS = [
   ["商学部","商学部"], ["経済学部","経済学部"],
   ["言語コミュニケーション学部","言語コミュ"], ["国際関係学部","国際関係"],
   ["人間社会学部","人間社会"], ["医療健康学部","医療健康"],
-  ["入試課","入試課"], ["国際交流課","国際交流課"], ["学生課","学生課"],
-  ["キャリアセンター","キャリア"], ["スポーツ推進課","スポーツ"]
+  ["入試","入試"], ["Eトラ入試","Eトラ入試"], ["留学","留学"],
+  ["学生生活","学生生活"], ["キャリアセンター","キャリア"], ["強化クラブ","強化クラブ"]
 ];
 var STATUS_CLASS = { "空き":"s-free", "使用中":"s-busy", "休憩中":"s-rest" };
+
+// ===== 配置図: エリアごとの卓（api.cgi の正式名称と一致） =====
+var SEAT_303 = ["強化クラブ","学生生活","キャリアセンター","留学①","留学②","入試⑨","入試⑩"];
+var SEAT_304 = ["入試①","入試②","入試③","入試④","入試⑤","入試⑥","入試⑦","入試⑧"];
+var SEAT_KOKUSAI = ["国①：野澤基恭","国②：金俊昊","国③：尾形弘紀","国④：河崎眞澄","国⑤：吉田龍太郎"];
+var SEAT_KEIZAI = ["経①：泉淳","経②：渡辺雅仁","経③：青木隆明","経④：吉村一男"];
+var SEAT_ETRA = ["E入試①","E①：シャーカシノラ","E②：ツヴォルンダンマ"];
+var SEAT_SHO = ["商①：山口智弘","商②：竹田恒"];
+var SEAT_GEN = ["言①：布村奈緒子","言②：緒方哲也","言③：小谷真理子","言④：戸谷陽子","言⑤：水野厚志","言⑥：櫻井功男"];
+
+function tableByName(name){
+  if (!state || !state.tables) return null;
+  for (var i=0;i<state.tables.length;i++){ if (state.tables[i].name === name) return state.tables[i]; }
+  return null;
+}
 
 var token = null;
 var state = null;          // サーバーから受け取った最新の状態
@@ -423,22 +494,109 @@ function renderStats(){
 }
 
 function renderTables(){
-  $("table-grid").innerHTML = state.tables.map(function(t){
-    var cls = STATUS_CLASS[t.status] || "";
-    var h = '<h3>' + esc(t.name) + '</h3><span class="status-badge">' + esc(t.status) + '</span>';
-    if (t.status === "使用中"){
-      h += '<p class="time">経過時間: <span class="elapsed" data-start="' + t.start + '" data-id="' + t.id + '">0分</span></p>'
-         + '<div class="progress-bar"><div class="progress-fill" id="progress-' + t.id + '"></div></div>'
-         + '<div class="actions"><button class="btn btn-danger" data-action="end" data-id="' + t.id + '">終了</button></div>';
-    } else if (t.status === "空き"){
-      h += '<div class="actions">'
-         + '<button class="btn btn-success" data-action="start" data-id="' + t.id + '">開始</button>'
-         + '<button class="btn btn-warning" data-action="break" data-id="' + t.id + '">休憩設定</button></div>';
-    } else {
-      h += '<div class="actions"><button class="btn btn-info" data-action="resume" data-id="' + t.id + '">休憩解除</button></div>';
-    }
-    return '<div class="table-card ' + cls + '" id="table-' + t.id + '">' + h + '</div>';
-  }).join("");
+  renderStaff();
+  renderTeacher();
+}
+
+function seatHtml(name, shortLabel){
+  var t = tableByName(name);
+  if (!t){ return '<span class="seat" style="visibility:hidden;"></span>'; }
+  var cls, body;
+  if (t.status === "\u4f7f\u7528\u4e2d"){
+    cls = "busy";
+    body = '<span class="sn">' + esc(shortLabel) + '</span>'
+         + '<span class="se elapsed" data-start="' + t.start + '" data-id="' + t.id + '">0\u5206</span>'
+         + '<span class="sp"><i id="progress-' + t.id + '"></i></span>';
+  } else if (t.status === "\u7a7a\u304d"){
+    cls = "free";
+    body = '<span class="sn">' + esc(shortLabel) + '</span><span class="se">\u7a7a\u304d</span>';
+  } else {
+    cls = "rest";
+    body = '<span class="sn">' + esc(shortLabel) + '</span><span class="se">\u4f11\u61a9</span>';
+  }
+  return '<span class="seat ' + cls + '" id="table-' + t.id + '" data-seat="' + t.id + '">' + body + '</span>';
+}
+
+function areaCount(names){
+  var free=0, total=0;
+  names.forEach(function(n){ var t=tableByName(n); if(t){ total++; if(t.status==="\u7a7a\u304d") free++; } });
+  return { free:free, total:total };
+}
+
+function renderStaff(){
+  var c303 = areaCount(SEAT_303);
+  var c304 = areaCount(SEAT_304);
+  var free = c303.free + c304.free, total = c303.total + c304.total;
+  var html = '<div class="venue-head"><h2>\u8077\u54e1\u30a8\u30ea\u30a2\u3000303\u30fb304</h2><span class="cnt">\u7a7a\u304d ' + free + ' / ' + total + '\u5353</span></div>'
+    + '<div class="rooms">'
+    +   '<div class="room"><span class="rno">303</span><span class="rtag">\u8cc7\u6599</span>'
+    +     '<div class="rsub">\u7559\u5b66\u30fb\u7a93\u53e3\u30fb\u5165\u5b66\u30bb\u30f3\u30bf\u30fc</div><div class="g3">'
+    +       seatHtml("\u5f37\u5316\u30af\u30e9\u30d6","\u5f37\u5316\u30af\u30e9\u30d6") + seatHtml("\u7559\u5b66\u2460","\u7559\u5b66\u2460") + seatHtml("\u5165\u8a66\u2468","\u5165\u8a66\u2468")
+    +       seatHtml("\u5b66\u751f\u751f\u6d3b","\u5b66\u751f\u751f\u6d3b") + '<span class="seat" style="visibility:hidden;"></span><span class="seat" style="visibility:hidden;"></span>'
+    +       seatHtml("\u30ad\u30e3\u30ea\u30a2\u30bb\u30f3\u30bf\u30fc","\u30ad\u30e3\u30ea\u30a2") + seatHtml("\u7559\u5b66\u2461","\u7559\u5b66\u2461") + seatHtml("\u5165\u8a66\u2469","\u5165\u8a66\u2469")
+    +     '</div></div>'
+    +   '<div class="room"><span class="rno">304</span><span class="rtag">\u8cc7\u6599</span>'
+    +     '<div class="rsub">\u5165\u5b66\u30bb\u30f3\u30bf\u30fc\u8077\u54e1</div><div class="g3">'
+    +       seatHtml("\u5165\u8a66\u2466","\u5165\u8a66\u2466") + seatHtml("\u5165\u8a66\u2463","\u5165\u8a66\u2463") + seatHtml("\u5165\u8a66\u2460","\u5165\u8a66\u2460")
+    +       seatHtml("\u5165\u8a66\u2467","\u5165\u8a66\u2467") + seatHtml("\u5165\u8a66\u2464","\u5165\u8a66\u2464") + seatHtml("\u5165\u8a66\u2461","\u5165\u8a66\u2461")
+    +       '<span class="seat" style="visibility:hidden;"></span>' + seatHtml("\u5165\u8a66\u2465","\u5165\u8a66\u2465") + seatHtml("\u5165\u8a66\u2462","\u5165\u8a66\u2462")
+    +     '</div></div>'
+    + '</div>';
+  $("floor-staff").innerHTML = html;
+}
+
+function absSeat(name, shortLabel, style){
+  var t = tableByName(name);
+  if (!t) return '';
+  var cls = t.status==="\u4f7f\u7528\u4e2d" ? "busy" : (t.status==="\u7a7a\u304d" ? "free" : "rest");
+  var body;
+  if (t.status==="\u4f7f\u7528\u4e2d"){
+    body = '<span class="sn">'+esc(shortLabel)+'</span>'
+         + '<span class="se elapsed" data-start="'+t.start+'" data-id="'+t.id+'">0\u5206</span>'
+         + '<span class="sp"><i id="progress-'+t.id+'"></i></span>';
+  } else {
+    body = '<span class="sn">'+esc(shortLabel)+'</span><span class="se">'+(t.status==="\u7a7a\u304d"?"\u7a7a\u304d":"\u4f11\u61a9")+'</span>';
+  }
+  return '<span class="seat '+cls+'" id="table-'+t.id+'" data-seat="'+t.id+'" style="'+style+'">'+body+'</span>';
+}
+
+function renderTeacher(){
+  var all = SEAT_KOKUSAI.concat(SEAT_KEIZAI, SEAT_ETRA, SEAT_SHO, SEAT_GEN);
+  var cc = areaCount(all);
+  var h = '<div class="venue-head"><h2>\u6559\u54e1\u30a8\u30ea\u30a2\u3000\u30e9\u30fc\u30cb\u30f3\u30b0\u30b3\u30e2\u30f3\u30ba</h2><span class="cnt">\u7a7a\u304d ' + cc.free + ' / ' + cc.total + '\u5353</span></div>'
+    + '<div class="commons">'
+    + '<div class="zone z-green" style="left:16px;top:44px;width:300px;height:238px;"></div>'
+    + '<span class="zlab" style="left:28px;top:52px;color:var(--ok);">\u56fd\u969b\u95a2\u4fc2 5\u5e2d \u30fb \u7a7a\u304d'+areaCount(SEAT_KOKUSAI).free+'</span>'
+    + absSeat("\u56fd\u2460\uff1a\u91ce\u6fa4\u57fa\u606d","\u56fd\u2460 \u91ce\u6fa4","left:28px;top:210px;width:86px;height:60px;")
+    + absSeat("\u56fd\u2461\uff1a\u91d1\u4fca\u660a","\u56fd\u2461 \u91d1","left:122px;top:210px;width:86px;height:60px;")
+    + absSeat("\u56fd\u2464\uff1a\u5409\u7530\u9f8d\u592a\u90ce","\u56fd\u2464 \u5409\u7530","left:216px;top:80px;width:86px;height:60px;")
+    + absSeat("\u56fd\u2463\uff1a\u6cb3\u5d0e\u771e\u6f84","\u56fd\u2463 \u6cb3\u5d0e","left:216px;top:150px;width:86px;height:60px;")
+    + absSeat("\u56fd\u2462\uff1a\u5c3e\u5f62\u5f18\u7d00","\u56fd\u2462 \u5c3e\u5f62","left:216px;top:210px;width:86px;height:60px;")
+    + '<div class="zone z-blue" style="left:330px;top:44px;width:196px;height:238px;"></div>'
+    + '<span class="zlab" style="left:342px;top:52px;color:var(--primary);">\u7d4c\u6e08 4\u5e2d \u30fb \u7a7a\u304d'+areaCount(SEAT_KEIZAI).free+'</span>'
+    + absSeat("\u7d4c\u2462\uff1a\u9752\u6728\u9686\u660e","\u7d4c\u2462 \u9752\u6728","left:432px;top:80px;width:86px;height:60px;")
+    + absSeat("\u7d4c\u2461\uff1a\u6e21\u8fba\u96c5\u4ec1","\u7d4c\u2461 \u6e21\u8fba","left:432px;top:150px;width:86px;height:60px;")
+    + absSeat("\u7d4c\u2463\uff1a\u5409\u6751\u4e00\u7537","\u7d4c\u2463 \u5409\u6751","left:342px;top:210px;width:86px;height:60px;")
+    + absSeat("\u7d4c\u2460\uff1a\u6cc9\u6df3","\u7d4c\u2460 \u6cc9","left:432px;top:210px;width:86px;height:60px;")
+    + '<div class="zone z-blue" style="left:16px;top:300px;width:300px;height:110px;"></div>'
+    + '<span class="zlab" style="left:28px;top:308px;color:var(--primary);">E\u30c8\u30e9 3\u5e2d \u30fb \u7a7a\u304d'+areaCount(SEAT_ETRA).free+'</span>'
+    + absSeat("E\u2461\uff1a\u30c4\u30f4\u30a9\u30eb\u30f3\u30c0\u30f3\u30de","E\u2461 \u30c4\u30f4\u30a9","left:28px;top:336px;width:86px;height:60px;")
+    + absSeat("E\u2460\uff1a\u30b7\u30e3\u30fc\u30ab\u30b7\u30ce\u30e9","E\u2460 \u30b7\u30e3\u30ab","left:122px;top:336px;width:86px;height:60px;")
+    + absSeat("E\u5165\u8a66\u2460","E\u5165\u8a66\u2460","left:216px;top:336px;width:86px;height:60px;")
+    + '<div class="zone z-orange" style="right:150px;top:120px;width:110px;height:162px;"></div>'
+    + '<span class="zlab" style="right:158px;top:128px;color:#d98324;">\u5546\uff08DS\uff09</span>'
+    + absSeat("\u5546\u2460\uff1a\u5c71\u53e3\u667a\u5f18","\u5546\u2460 \u5c71\u53e3","right:158px;top:156px;width:94px;height:60px;")
+    + absSeat("\u5546\u2461\uff1a\u7af9\u7530\u6052","\u5546\u2461 \u7af9\u7530","right:158px;top:222px;width:94px;height:60px;")
+    + '<div class="zone z-purple" style="right:12px;top:12px;width:120px;height:446px;"></div>'
+    + '<span class="zlab" style="right:20px;top:20px;color:#7d4ec4;">\u8a00\u30b3\u30df 6\u5e2d \u30fb \u7a7a\u304d'+areaCount(SEAT_GEN).free+'</span>'
+    + absSeat("\u8a00\u2465\uff1a\u6afb\u4e95\u529f\u7537","\u8a00\u2465 \u6afb\u4e95","right:20px;top:46px;width:104px;height:60px;")
+    + absSeat("\u8a00\u2464\uff1a\u6c34\u91ce\u539a\u5fd7","\u8a00\u2464 \u6c34\u91ce","right:20px;top:112px;width:104px;height:60px;")
+    + absSeat("\u8a00\u2463\uff1a\u6238\u8c37\u967d\u5b50","\u8a00\u2463 \u6238\u8c37","right:20px;top:178px;width:104px;height:60px;")
+    + absSeat("\u8a00\u2462\uff1a\u5c0f\u8c37\u771f\u7406\u5b50","\u8a00\u2462 \u5c0f\u8c37","right:20px;top:244px;width:104px;height:60px;")
+    + absSeat("\u8a00\u2461\uff1a\u7dd2\u65b9\u54f2\u4e5f","\u8a00\u2461 \u7dd2\u65b9","right:20px;top:310px;width:104px;height:60px;")
+    + absSeat("\u8a00\u2460\uff1a\u5e03\u6751\u5948\u7dd2\u5b50","\u8a00\u2460 \u5e03\u6751","right:20px;top:376px;width:104px;height:60px;")
+    + '</div>';
+  $("floor-teacher").innerHTML = h;
 }
 
 function queueItemHtml(item, withTopic){
@@ -495,25 +653,21 @@ function tick(){
     if (!start) return;
     var id = el.dataset.id;
     var m = minutesSince(start);
-    el.textContent = m + "分";
-
-    var card = $("table-" + id);
+    el.textContent = m + "\u5206";
+    var seat = $("table-" + id);
     var bar  = $("progress-" + id);
     if (bar){
       bar.style.width = Math.min((m / timeLimit) * 100, 100) + "%";
       bar.style.background = m < 10 ? "var(--ok)" : (m < timeLimit ? "var(--warn)" : "var(--danger)");
     }
+    if (seat){
+      seat.classList.remove("warn","over");
+      if (m >= timeLimit) seat.classList.add("over");
+      else if (m >= 12) seat.classList.add("warn");
+    }
     if (m >= timeLimit){
-      el.style.color = "var(--danger)"; el.style.fontWeight = "bold"; el.style.fontSize = "22px";
-      if (card) card.classList.add("overtime");
       var key = id + ":" + start;
       if (!alarmFired[key]){ alarmFired[key] = 1; triggerAlarm(id); }
-    } else if (m >= 12){
-      el.style.color = "var(--warn)"; el.style.fontWeight = "bold"; el.style.fontSize = "18px";
-      if (card) card.classList.remove("overtime");
-    } else {
-      el.style.color = "var(--ok)"; el.style.fontWeight = "700"; el.style.fontSize = "18px";
-      if (card) card.classList.remove("overtime");
     }
   });
 
@@ -580,12 +734,63 @@ function submitQueue(){
 }
 
 /* ---------- イベント ---------- */
+var seatModalId = null;
+
+function onSeatTap(id){ openSeatModal(id); }
+
+function openSeatModal(id){
+  var t = null;
+  for (var i=0;i<state.tables.length;i++){ if (state.tables[i].id===id){ t=state.tables[i]; break; } }
+  if (!t) return;
+  seatModalId = id;
+  $("sm-name").textContent = t.name;
+  var badge = $("sm-status"), el = $("sm-elapsed"), btns = $("sm-btns");
+  if (t.status === "使用中"){
+    badge.className = "seat-status busy"; badge.textContent = "相談中";
+    var m = t.start ? Math.floor((nowServerMs() - t.start*1000)/60000) : 0;
+    $("sm-min").textContent = m; el.style.display = "";
+    btns.innerHTML = '<button class="btn btn-danger" data-seat-act="end">■ 相談を終了</button>'
+      + '<button class="btn btn-secondary" data-seat-act="close">閉じる</button>';
+  } else if (t.status === "空き"){
+    badge.className = "seat-status free"; badge.textContent = "空き"; el.style.display = "none";
+    btns.innerHTML = '<button class="btn btn-success" data-seat-act="start">▶ 相談を開始</button>'
+      + '<button class="btn btn-warning" data-seat-act="break">休憩にする</button>'
+      + '<button class="btn btn-secondary" data-seat-act="close">閉じる</button>';
+  } else {
+    badge.className = "seat-status rest"; badge.textContent = "休憩中"; el.style.display = "none";
+    btns.innerHTML = '<button class="btn btn-info" data-seat-act="resume">休憩を解除</button>'
+      + '<button class="btn btn-secondary" data-seat-act="close">閉じる</button>';
+  }
+  $("seatModal").classList.add("open");
+}
+
+function closeSeatModal(){ $("seatModal").classList.remove("open"); seatModalId = null; }
+
+function seatModalAction(a){
+  var id = seatModalId;
+  if (a === "close"){ closeSeatModal(); return; }
+  closeSeatModal();
+  if (id == null) return;
+  if (a === "start") act({ action:"start", id:id });
+  else if (a === "end") act({ action:"end", id:id });
+  else if (a === "break") act({ action:"break", id:id });
+  else if (a === "resume") act({ action:"resume", id:id });
+}
+
 document.addEventListener("click", function(e){
   var nav = e.target.closest("[data-nav]");
   if (nav){ showView(nav.dataset.nav); return; }
 
   var tab = e.target.closest("[data-tab]");
   if (tab){ activeTab = tab.dataset.tab; lastRenderKey = ""; render(); return; }
+
+  // 卓操作モーダルのボタン
+  var smBtn = e.target.closest("[data-seat-act]");
+  if (smBtn){ seatModalAction(smBtn.dataset.seatAct); return; }
+
+  // 配置図の卓タップ
+  var seat = e.target.closest("[data-seat]");
+  if (seat){ onSeatTap(parseInt(seat.dataset.seat, 10)); return; }
 
   var a = e.target.closest("[data-action]");
   if (!a) return;
@@ -621,7 +826,8 @@ $("login-btn").addEventListener("click", login);
 $("login-pw").addEventListener("keydown", function(e){ if (e.key === "Enter") login(); });
 $("queueForm").addEventListener("submit", function(e){ e.preventDefault(); submitQueue(); });
 $("addForm").addEventListener("click", function(e){ if (e.target === this) closeForm(); });
-document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeForm(); });
+$("seatModal").addEventListener("click", function(e){ if (e.target === this) closeSeatModal(); });
+document.addEventListener("keydown", function(e){ if (e.key === "Escape"){ closeForm(); closeSeatModal(); } });
 
 /* ---------- 起動 ---------- */
 try { token = sessionStorage.getItem("oc_token"); } catch(e){}

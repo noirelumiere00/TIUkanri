@@ -650,7 +650,13 @@ function act(params, onError){
     applyState(s);
   }).catch(function(){
     setConnected(false);
-    alert("⚠️ サーバーにつながりません。電波の状態を確認してください。");
+    if (navigator.onLine === false){
+      alert("⚠️ この端末がオフラインです。Wi‑Fi・電波を確認してください。");
+    } else {
+      // 端末はオンライン＝サーバー障害ではなく通信が一瞬途切れた可能性。
+      // （実際にサーバーが落ちている場合は上部に赤帯が出ます）
+      alert("⚠️ 通信に失敗しました。もう一度タップするか、ページを再読み込みしてください。");
+    }
   });
 }
 

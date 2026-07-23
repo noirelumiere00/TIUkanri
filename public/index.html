@@ -9,9 +9,9 @@
   :root{
     --bg:#eef2f7; --surface:#fff; --ink:#1f2933; --muted:#667085; --line:#e2e8f0;
     --primary:#1f6feb; --primary-d:#1a5fce;
-    --ok:#1e9e57; --ok-d:#188049; --ok-bg:#e3f4ea; --ok-line:#a9d9bd;
-    --warn:#e0a106; --warn-d:#c08c05; --warn-line:#eac36b;
-    --danger:#d64045; --danger-d:#bb3338; --danger-bg:#fbe3e4; --danger-line:#eba3a6;
+    --ok:#1e9e57; --ok-d:#188049;
+    --warn:#e0a106; --warn-d:#c08c05;
+    --danger:#d64045; --danger-d:#bb3338;
     --info:#0f9bb0; --info-d:#0c8497;
     --radius:12px; --shadow:0 1px 2px rgba(16,24,40,.06),0 4px 16px rgba(16,24,40,.06);
     font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI",Meiryo,system-ui,sans-serif;
@@ -79,14 +79,17 @@
   .seat .se{font-size:15px;font-weight:800;line-height:1.25;font-variant-numeric:tabular-nums;}
   .seat .sp{height:5px;width:100%;background:#eef1f5;border-radius:999px;overflow:hidden;margin-top:4px;}
   .seat .sp>i{display:block;height:100%;width:0;background:var(--ok);border-radius:999px;transition:width .8s linear,background .3s;}
-  .seat.free{background:var(--ok-bg);border-color:var(--ok-line);}
+  /* ブースの中身(卓カード)は部屋の色に関係なく常に白。状態は文字色・枠線で表現する */
+  .seat.free{background:#fff;border-color:var(--ok);}
   .seat.free .sn,.seat.free .se{color:var(--ok);}
+  .seat.busy{background:#fff;}
   .seat.busy .se{color:var(--ok);}
-  .seat.warn{border-color:var(--warn-line);}
+  .seat.warn{background:#fff;border-color:var(--warn);}
   .seat.warn .se{color:var(--warn-d);}
-  .seat.over{background:var(--danger-bg);border-color:var(--danger-line);box-shadow:0 0 0 2px rgba(214,64,69,.15);}
+  .seat.over{background:#fff;border-color:var(--danger);box-shadow:0 0 0 2px rgba(214,64,69,.15);}
   .seat.over .sn,.seat.over .se{color:var(--danger);}
-  .seat.rest{opacity:.5;}
+  .seat.rest{background:#fff;border-style:dashed;border-color:#cbd5e1;}
+  .seat.rest .sn,.seat.rest .se{color:var(--muted);}
   .rooms{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   .room{background:var(--surface);border:1.5px solid #cfd6e0;border-radius:10px;padding:30px 12px 14px;position:relative;}
   .rno{position:absolute;left:12px;top:8px;font-size:14px;font-weight:800;color:var(--muted);}
@@ -102,7 +105,133 @@
   .z-blue{background:#e4eefc;border:1.5px solid var(--primary);}
   .z-orange{background:#fdefdd;border:1.5px solid #d98324;}
   .z-purple{background:#efe7fa;border:1.5px solid #7d4ec4;}
-  @media (max-width:560px){ .rooms{grid-template-columns:1fr;} .commons{height:auto;} }
+  @media (max-width:560px){ .rooms{grid-template-columns:1fr;} .commons{overflow-x:auto;} }
+  /* ===== データ駆動フロア（部屋ごとに自動整列/マス目配置） ===== */
+  .fl-room{background:var(--surface);border:1.5px solid #cfd6e0;border-radius:10px;padding:12px 14px 14px;margin-bottom:14px;}
+  .fl-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .fl-head .fn{font-size:15px;font-weight:800;}
+  .fl-head .ft{font-size:11px;font-weight:700;color:#a08a3c;background:#fdf3d8;border:1px dashed #e0c778;border-radius:4px;padding:2px 8px;}
+  .fl-head .fm{font-size:12px;color:var(--muted);font-weight:600;}
+  .fl-head .fc{margin-left:auto;font-size:12px;color:var(--muted);font-weight:700;white-space:nowrap;}
+  .fl-auto{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px;}
+  .fl-grid{display:grid;gap:9px;}
+  .fl-auto .seat,.fl-grid .seat{min-height:60px;padding:7px 5px;}
+  .fl-grid .gap{border:1px dashed #dfe5ec;background:#fafbfc;border-radius:8px;}
+  @media (max-width:560px){ .fl-grid{overflow-x:auto;} }
+  .fl-map{display:grid;gap:12px;margin-bottom:14px;}
+  .fl-map .fl-room{margin-bottom:0;height:100%;}
+  .fl-unplaced-note{font-size:12px;color:var(--muted);font-weight:700;margin:6px 0;}
+  @media (max-width:560px){ .fl-map{overflow-x:auto;} }
+  /* ===== 会場エディタ ===== */
+  .ve-campus{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);margin-bottom:16px;}
+  .ve-campus .cl{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:8px;}
+  .ve-tabs{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .ve-tab{padding:9px 14px;border-radius:10px;border:2px solid var(--line);background:#fff;font-weight:700;cursor:pointer;font-size:14px;}
+  .ve-tab.active{border-color:var(--primary);background:#eef4ff;color:var(--primary-d);}
+  .ve-tab.active .use{color:var(--ok);font-weight:800;font-size:12px;}
+  .ve-actbtn{border:1px dashed #b9c9e8;color:var(--primary);background:transparent;border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit;}
+  .ve-namebox{margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .ve-namebox input{padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;font-size:15px;font-weight:700;font-family:inherit;}
+  .ve-topics{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:var(--shadow);}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:#e4eefc;color:var(--primary-d);font-weight:700;font-size:13px;padding:6px 6px 6px 12px;border-radius:999px;}
+  .chip .x{background:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;color:var(--danger);font-weight:800;font-size:12px;cursor:pointer;}
+  .chip-add{background:#fff;border:1px dashed #b9c9e8;color:var(--primary);cursor:pointer;padding:6px 12px;}
+  .chip-sub{border:none;background:#fff;color:var(--primary-d);border-radius:6px;font-size:10px;font-weight:800;padding:2px 6px;cursor:pointer;}
+  .ve-color{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);font-weight:700;}
+  .ve-color input[type=color]{width:34px;height:30px;border:1px solid var(--line);border-radius:6px;padding:0;cursor:pointer;background:none;}
+  .ve-color-clear{color:var(--danger);cursor:pointer;font-size:11px;font-weight:700;}
+  .ve-room{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:14px;}
+  .ve-rhead{display:flex;align-items:center;gap:8px;padding:12px 14px;background:#f6f8fb;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  .ve-rhead input{padding:7px 10px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;}
+  .ve-rhead .rn{width:150px;font-weight:800;} .ve-rhead .rt{width:80px;} .ve-rhead .rm{flex:1;min-width:120px;}
+  .ve-mode{display:inline-flex;border:1.5px solid var(--line);border-radius:8px;overflow:hidden;}
+  .ve-mode span{padding:7px 11px;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);background:#fff;}
+  .ve-mode span.on{background:var(--primary);color:#fff;}
+  .ve-rdel{margin-left:auto;color:var(--danger);background:transparent;border:none;font-weight:700;font-size:13px;cursor:pointer;}
+  .ve-body{padding:12px 14px;}
+  .ve-hint{font-size:12px;color:var(--muted);margin-bottom:8px;}
+  .ve-booths{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;}
+  .ve-booth{display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:8px;padding:5px 7px;background:#fff;}
+  .ve-booth .mv{color:#b9c4d4;cursor:pointer;font-size:14px;font-weight:800;user-select:none;}
+  .ve-booth input{flex:1;border:none;font-size:13px;font-weight:600;min-width:0;font-family:inherit;}
+  .ve-booth .x{color:var(--danger);cursor:pointer;font-weight:800;}
+  .ve-badd{border:1px dashed #b9c9e8;color:var(--primary);justify-content:center;cursor:pointer;font-weight:700;font-size:13px;}
+  .ve-gtools{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13px;color:var(--muted);flex-wrap:wrap;}
+  .ve-step{display:inline-flex;align-items:center;border:1.5px solid var(--line);border-radius:8px;overflow:hidden;}
+  .ve-step b{padding:0 10px;font-variant-numeric:tabular-nums;} .ve-step button{border:none;background:#f1f4f8;width:28px;height:30px;font-size:15px;font-weight:800;cursor:pointer;}
+  .ve-grid{display:grid;gap:8px;background:#f0f3f7;border:1.5px solid #cfd6e0;border-radius:10px;padding:10px;}
+  .ve-cell{min-height:54px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:12px;position:relative;padding:4px;}
+  .ve-cell.empty{border:1.5px dashed #c7d0dc;color:#aeb8c6;background:#fff;cursor:pointer;}
+  .ve-cell.filled{border:1px solid var(--ok-line);background:var(--ok-bg);color:var(--ok);font-weight:800;cursor:pointer;}
+  .ve-cell .x{position:absolute;top:1px;right:4px;color:var(--danger);font-weight:800;}
+  .ve-pal{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;}
+  .ve-pal .pl{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;}
+  .ve-pchip{display:inline-flex;align-items:center;gap:4px;background:#fff;border:1.5px solid var(--primary);border-radius:8px;padding:4px 6px;margin:0 6px 6px 0;}
+  .ve-pchip.sel{background:var(--primary);}
+  .ve-pchip.sel input,.ve-pchip.sel .x{color:#fff;}
+  .ve-pchip input{border:none;background:transparent;font-size:12px;font-weight:700;color:var(--primary-d);width:80px;font-family:inherit;}
+  .ve-pchip .ve-place{border:none;background:#e4eefc;color:var(--primary-d);border-radius:6px;font-size:11px;font-weight:800;padding:3px 7px;cursor:pointer;font-family:inherit;}
+  .ve-pchip.sel .ve-place{background:#fff;color:var(--primary);}
+  .ve-pchip .x{color:var(--danger);cursor:pointer;font-weight:800;}
+  /* 会場マップ（部屋の位置） */
+  .ve-floor{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:14px;margin-bottom:16px;}
+  .ve-floor h2{font-size:14px;margin:0 0 8px;}
+  .ve-fhint{font-size:12px;color:var(--muted);margin-bottom:10px;}
+  .ve-fgrid{display:grid;gap:8px;background:#f0f3f7;border:1.5px solid #cfd6e0;border-radius:10px;padding:10px;}
+  .ve-fcell{min-height:56px;border:1.5px dashed #c7d0dc;background:#fff;border-radius:8px;color:#aeb8c6;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;}
+  .ve-froom{border:1px solid var(--primary);background:#eef4ff;border-radius:8px;position:relative;padding:8px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+  .ve-froom .rnm{font-size:13px;font-weight:800;color:var(--primary-d);}
+  .ve-froom .rsz{margin-top:4px;display:flex;gap:4px;font-size:11px;color:var(--muted);align-items:center;flex-wrap:wrap;justify-content:center;}
+  .ve-froom .rsz button{border:none;background:#dbe6fb;border-radius:5px;width:22px;height:22px;font-weight:800;cursor:pointer;font-size:13px;}
+  .ve-froom .rx{position:absolute;top:2px;right:5px;color:var(--danger);font-weight:800;cursor:pointer;}
+  .ve-fpal{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;}
+  .ve-fpal .pl{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;}
+  .ve-fpchip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--primary);border-radius:8px;padding:5px 8px;margin:0 6px 6px 0;font-size:12px;font-weight:700;color:var(--primary-d);}
+  .ve-fpchip.sel{background:var(--primary);color:#fff;}
+  .ve-fpchip button{border:none;background:#e4eefc;color:var(--primary-d);border-radius:6px;font-size:11px;font-weight:800;padding:3px 7px;cursor:pointer;}
+  .ve-fpchip.sel button{background:#fff;}
+  /* ===== 自動休憩 設定画面 ===== */
+  .sched-note{font-size:13px;color:var(--muted);background:#eef4ff;border:1px solid #d6e4ff;border-radius:10px;padding:12px 14px;margin:12px 0 16px;line-height:1.7;}
+  .sched-note b{color:var(--ink);}
+  .sched-bulk{background:var(--surface);border:1px dashed #b9c4d4;border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .sched-bulk .lbl{font-weight:700;font-size:14px;}
+  .sched-bulk input[type=time]{padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;font-size:16px;font-family:inherit;}
+  .sched-area{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden;}
+  .sched-area h2{font-size:14px;font-weight:800;margin:0;padding:11px 16px;background:#f6f8fb;border-bottom:1px solid var(--line);color:#334155;display:flex;align-items:center;gap:8px;}
+  .sched-area h2 label{display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:800;}
+  .sched-area h2 .area-check{width:20px;height:20px;}
+  .sched-selbar{display:flex;align-items:center;gap:10px;margin:-6px 0 14px;flex-wrap:wrap;}
+  .sched-selbar #sel-count{font-size:13px;font-weight:700;color:var(--primary);}
+  .sched-check{width:22px;height:22px;cursor:pointer;}
+  .sched-row{display:grid;grid-template-columns:auto 1.4fr 1fr 1fr;gap:10px;align-items:center;padding:9px 16px;border-bottom:1px solid #f0f3f7;}
+  .sched-row.selected{background:#eef4ff;}
+  .sched-row:last-child{border-bottom:none;}
+  .sched-row .name{font-weight:700;font-size:14px;}
+  .sched-row .col-h{font-size:11px;color:var(--muted);font-weight:700;}
+  .sched-row.head{background:#fbfcfe;}
+  .sched-row input[type=time]{padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;font-size:16px;font-family:inherit;width:100%;}
+  .sc-chip{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:6px;white-space:nowrap;}
+  .sc-chip.rest{background:#fbf0d4;color:#c08c05;} .sc-chip.manual{background:#fde8e9;color:#bb3338;}
+  /* 複数時間帯 */
+  .win-list{display:flex;flex-direction:column;gap:6px;}
+  .win-pair{display:flex;align-items:center;gap:6px;}
+  .win-pair input[type=time]{padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;font-size:16px;font-family:inherit;width:118px;}
+  .win-del{background:#f1f4f8;color:var(--danger);border:none;border-radius:7px;width:30px;height:34px;
+    font-size:15px;font-weight:800;cursor:pointer;flex:none;}
+  .win-del:hover{background:#fde8e9;}
+  .btn-winadd{background:transparent;color:var(--primary);border:1px dashed #b9c9e8;border-radius:8px;
+    padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;align-self:flex-start;}
+  .btn-winadd:hover{background:#eef4ff;}
+  /* 卓の休憩表示強化 */
+  .seat .soon{font-size:10px;font-weight:700;color:#a06b00;background:#fdf3d8;border-radius:5px;padding:1px 5px;margin-top:2px;white-space:nowrap;}
+  .seat .ovdot{font-size:10px;color:var(--danger);font-weight:700;}
+  .sm-sched{font-size:13px;color:var(--muted);margin:-8px 0 14px;}
+  .sm-sched b{color:var(--ink);}
+  /* 通信断バナー */
+  #net-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:var(--danger);color:#fff;
+    text-align:center;font-weight:800;font-size:15px;padding:12px 16px;box-shadow:0 4px 16px rgba(214,64,69,.4);}
+  #net-banner.show{display:block;}
+  .sched-save{position:sticky;bottom:0;background:linear-gradient(0deg,var(--bg),rgba(238,242,247,.7));padding:14px 0 4px;display:flex;gap:10px;justify-content:flex-end;}
   .table-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
     padding:16px 16px 16px 18px;box-shadow:var(--shadow);border-left:5px solid var(--line);
     display:flex;flex-direction:column;gap:6px;}
@@ -144,7 +273,8 @@
   .waiting-time{font-size:14px;font-weight:700;color:var(--ok);white-space:nowrap;font-variant-numeric:tabular-nums;}
   .no-queue{color:var(--muted);text-align:center;padding:32px 0;font-size:14px;}
 
-  .modal{position:fixed;inset:0;background:rgba(16,24,40,.5);display:none;align-items:center;justify-content:center;padding:18px;z-index:50;}
+  /* inset:0 は古いiPadのSafari(iOS14.5未満)が未対応のため top/left/right/bottom で書く */
+  .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(16,24,40,.5);display:none;align-items:center;justify-content:center;padding:18px;z-index:50;}
   .modal.open{display:flex;}
   .modal-content{background:var(--surface);border-radius:16px;padding:24px;width:100%;max-width:440px;
     max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(16,24,40,.3);}
@@ -162,10 +292,13 @@
   .seat-status.rest{background:#fbf0d4;color:var(--warn-d);}
   .seat-elapsed{font-size:15px;color:var(--muted);margin-bottom:16px;}
   .seat-elapsed b{color:var(--ink);font-size:22px;font-variant-numeric:tabular-nums;}
-  .seat-btns{display:flex;flex-direction:column;gap:10px;}
+  /* 旧Safariはflexのgap未対応のため、marginで間隔をつける */
+  .seat-btns{display:flex;flex-direction:column;}
+  .seat-btns .btn + .btn{margin-top:10px;}
   .seat-btns .btn{min-height:50px;font-size:15px;padding:14px;border-radius:10px;}
   .required{color:var(--danger);}
-  .form-actions{display:flex;gap:10px;margin-top:22px;}
+  .form-actions{display:flex;margin-top:22px;}
+  .form-actions .btn + .btn{margin-left:10px;}
   .form-actions .btn{flex:1;}
 
   .footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);
@@ -206,6 +339,10 @@
       <a class="btn btn-primary btn-large" data-nav="tables">テーブル管理<small>相談ブースの開始・終了・経過時間</small></a>
       <a class="btn btn-success btn-large" data-nav="queue">待機列管理<small>受付・相談内容別の待機状況</small></a>
     </div>
+    <div style="margin:-14px 0 8px;">
+      <a class="btn btn-secondary" data-nav="schedule" style="width:100%;">⏸ 自動休憩の設定<small style="font-weight:600;opacity:.8;display:block;">時間になると自動で休憩／解除</small></a>
+      <a class="btn btn-secondary" data-action="open-venue" style="width:100%;margin-top:8px;">🏫 会場・レイアウト設定<small style="font-weight:600;opacity:.8;display:block;">キャンパス・部屋・ブース・相談内容を編集／切替</small></a>
+    </div>
 
     <div class="section-head"><h2>本日の統計</h2></div>
     <div class="stat-grid">
@@ -227,6 +364,71 @@
     </div>
   </section>
 
+  <!-- ===== 自動休憩の設定 ===== -->
+  <section id="view-schedule" class="view">
+    <div class="topbar">
+      <button class="btn btn-secondary" data-nav="home">← 戻る</button>
+      <h1 style="margin:0;">⏸ 自動休憩の設定</h1>
+      <span class="spacer"></span>
+      <span class="conn" id="conn-schedule">接続中</span>
+    </div>
+    <div class="sched-note">
+      設定した<b>休憩開始</b>の時刻になると、その卓は自動で<b>休憩中</b>になります。<br>
+      ・相談中の卓は<b>強制終了しません</b>（相談が「終了」されてから休憩になります）<br>
+      ・<b>休憩終了</b>の時刻になると自動で「空き」に戻ります<br>
+      ・手動で「休憩解除」した卓は、<b>その日はもう自動休憩しません</b>（人の操作を優先）<br>
+      ・時刻を空欄にすると、その卓は自動休憩なしになります
+    </div>
+    <div class="sched-bulk">
+      <span class="lbl">まとめて入れる:</span>
+      <span>休憩</span>
+      <input type="time" id="bulk-start">
+      <span>〜</span>
+      <input type="time" id="bulk-end">
+      <button class="btn btn-primary" data-action="bulk-selected">✓ 選択した卓に追加</button>
+      <button class="btn btn-secondary" data-action="bulk-all">全卓に追加</button>
+      <span id="bulk-note" style="display:none;font-size:12px;font-weight:700;color:var(--ok-d);"></span>
+    </div>
+    <div class="sched-selbar">
+      <span id="sel-count">0卓を選択中</span>
+      <button class="btn btn-ghost" data-action="sel-all">全選択</button>
+      <button class="btn btn-ghost" data-action="sel-none">全解除</button>
+      <span style="font-size:12px;color:var(--muted);">左のチェックで卓を選び、時刻を入れて「選択した卓に反映」</span>
+    </div>
+    <div id="sched-list"></div>
+    <div class="sched-save">
+      <button class="btn btn-ghost" data-nav="home">変更を破棄</button>
+      <button class="btn btn-success" data-action="schedule-save">この内容で保存</button>
+    </div>
+  </section>
+
+  <!-- ===== 会場・レイアウト設定 ===== -->
+  <section id="view-venue-edit" class="view">
+    <div class="topbar">
+      <button class="btn btn-secondary" data-nav="home">← 戻る</button>
+      <h1 style="margin:0;">🏫 会場・レイアウト設定</h1>
+      <span class="spacer"></span>
+      <span class="conn" id="conn-venue-edit">接続中</span>
+    </div>
+    <div class="sched-note">
+      キャンパスごとに<b>部屋</b>と<b>ブース</b>、<b>相談内容</b>を登録できます。当日は上のキャンパスを<b>選ぶだけ</b>。<br>
+      部屋は<b>自動整列</b>（かんたん）／<b>マス目配置</b>（実際の教室の形を再現）を切り替えられます。
+    </div>
+    <div class="ve-campus" id="ve-campus"></div>
+    <div class="ve-topics">
+      <h2 style="font-size:14px;margin:0 0 8px;">相談内容（待機列のタブ・受付の選択肢）</h2>
+      <div id="ve-topic-chips" class="chips"></div>
+    </div>
+    <div id="ve-floor" class="ve-floor"></div>
+    <h2 style="font-size:15px;margin:18px 0 10px;">部屋とブース（各部屋の中身）</h2>
+    <div id="ve-rooms"></div>
+    <button class="btn btn-secondary" data-action="ve-add-room" style="margin-top:12px;">＋ 部屋を追加</button>
+    <div class="sched-save">
+      <button class="btn btn-ghost" data-nav="home">変更を破棄</button>
+      <button class="btn btn-success" data-action="ve-save">この会場を保存</button>
+    </div>
+  </section>
+
   <!-- ===== テーブル管理 ===== -->
   <section id="view-tables" class="view">
     <div class="topbar">
@@ -235,8 +437,7 @@
       <span class="spacer"></span>
       <span class="conn" id="conn-tables">接続中</span>
     </div>
-    <div id="floor-staff"></div>
-    <div id="floor-teacher"></div>
+    <div id="floor"></div>
   </section>
 
   <!-- ===== 待機列管理 ===== -->
@@ -252,9 +453,8 @@
     <div id="tab-content"></div>
   </section>
 
-  <audio id="alarmSound" preload="auto">
-    <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
-  </audio>
+  <!-- アラーム音はWebAudioで生成（外部ファイル不要・オフラインでも鳴る） -->
+  <div id="net-banner">⚠ サーバーとの接続が切れています（最終更新 <span id="net-ago">--</span>秒前）。表示が古い可能性があります</div>
 
   <!-- 卓タップ時の操作モーダル -->
   <div id="seatModal" class="modal">
@@ -262,6 +462,7 @@
       <div class="seat-name" id="sm-name">&nbsp;</div>
       <span class="seat-status" id="sm-status">&nbsp;</span>
       <div class="seat-elapsed" id="sm-elapsed" style="display:none;">経過時間 <b id="sm-min">0</b> 分</div>
+      <div class="sm-sched" id="sm-sched" style="display:none;"></div>
       <div class="seat-btns" id="sm-btns"></div>
     </div>
   </div>
@@ -282,23 +483,11 @@
         <label>相談内容 <span class="required">*</span></label>
         <select id="f-topic">
           <option value="">選択してください</option>
-          <optgroup label="学部">
-            <option value="商学部">商学部</option>
-            <option value="経済学部">経済学部</option>
-            <option value="言語コミュニケーション学部">言語コミュニケーション学部</option>
-            <option value="国際関係学部">国際関係学部</option>
-            <option value="人間社会学部">人間社会学部</option>
-            <option value="医療健康学部">医療健康学部</option>
-          </optgroup>
-          <optgroup label="事務局・センター">
-            <option value="入試">入試</option>
-            <option value="Eトラ入試">Eトラ入試</option>
-            <option value="留学">留学</option>
-            <option value="学生生活">学生生活</option>
-            <option value="キャリアセンター">キャリアセンター</option>
-            <option value="強化クラブ">強化クラブ</option>
-          </optgroup>
         </select>
+        <div id="f-sub-wrap" style="display:none;margin-top:10px;">
+          <label id="f-sub-label">詳しい種類 <span class="required">*</span></label>
+          <select id="f-sub"><option value="">選択してください</option></select>
+        </div>
         <label>その他（任意）</label>
         <textarea id="f-notes" rows="3" placeholder="例: 保護者同伴、車椅子対応など"></textarea>
         <div class="form-actions">
@@ -315,28 +504,56 @@
 "use strict";
 
 var API = "api.cgi";
-var TOPICS = [
-  ["商学部","商学部"], ["経済学部","経済学部"],
-  ["言語コミュニケーション学部","言語コミュ"], ["国際関係学部","国際関係"],
-  ["人間社会学部","人間社会"], ["医療健康学部","医療健康"],
-  ["入試","入試"], ["Eトラ入試","Eトラ入試"], ["留学","留学"],
-  ["学生生活","学生生活"], ["キャリアセンター","キャリア"], ["強化クラブ","強化クラブ"]
-];
-var STATUS_CLASS = { "空き":"s-free", "使用中":"s-busy", "休憩中":"s-rest" };
 
-// ===== 配置図: エリアごとの卓（api.cgi の正式名称と一致） =====
-var SEAT_303 = ["強化クラブ","学生生活","キャリアセンター","留学①","留学②","入試⑨","入試⑩"];
-var SEAT_304 = ["入試①","入試②","入試③","入試④","入試⑤","入試⑥","入試⑦","入試⑧"];
-var SEAT_KOKUSAI = ["国①：野澤基恭","国②：金俊昊","国③：尾形弘紀","国④：河崎眞澄","国⑤：吉田龍太郎"];
-var SEAT_KEIZAI = ["経①：泉淳","経②：渡辺雅仁","経③：青木隆明","経④：吉村一男"];
-var SEAT_ETRA = ["E入試①","E①：シャーカシノラ","E②：ツヴォルンダンマ"];
-var SEAT_SHO = ["商①：山口智弘","商②：竹田恒"];
-var SEAT_GEN = ["言①：布村奈緒子","言②：緒方哲也","言③：小谷真理子","言④：戸谷陽子","言⑤：水野厚志","言⑥：櫻井功男"];
+// 相談内容（タブ・受付フォーム）は会場データから取得する。[value, label] の配列を返す。
+function topicsOf(){
+  var ts = (state && state.venue && state.venue.topics) ? state.venue.topics : [];
+  return ts.map(function(t){ return [t.value, t.label || t.value, t.group || ""]; });
+}
 
 function tableByName(name){
   if (!state || !state.tables) return null;
   for (var i=0;i<state.tables.length;i++){ if (state.tables[i].name === name) return state.tables[i]; }
   return null;
+}
+
+/* ===== 自動休憩の時間帯ヘルパー ===== */
+// サーバー時刻をJSTの "HH:MM" で返す（端末のタイムゾーン設定に依存しない）
+function jstHHMM(ms){
+  var g = new Date((ms != null ? ms : nowServerMs()) + 9*3600*1000);
+  return pad2v(g.getUTCHours()) + ":" + pad2v(g.getUTCMinutes());
+}
+function pad2v(n){ return String(n).padStart(2, "0"); }
+function hmToMin(hm){ var p = hm.split(":"); return (+p[0])*60 + (+p[1]); }
+
+// その卓の時間帯リスト（旧形式レスポンスにも耐えるよう配列に正規化）
+function winsOf(name){
+  var s = (state && state.schedules) ? state.schedules[name] : null;
+  if (!s) return [];
+  if (!Array.isArray(s)) s = [s];
+  return s.filter(function(w){ return w && w.start && w.end; });
+}
+// いま入っている時間帯（無ければnull）
+function curWinOf(name){
+  var cur = jstHHMM();
+  var ws = winsOf(name);
+  for (var i=0;i<ws.length;i++){ if (ws[i].start <= cur && cur < ws[i].end) return ws[i]; }
+  return null;
+}
+// 次に始まる時間帯（無ければnull）
+function nextWinOf(name){
+  var cur = jstHHMM();
+  var ws = winsOf(name).slice().sort(function(a,b){ return a.start < b.start ? -1 : 1; });
+  for (var i=0;i<ws.length;i++){ if (ws[i].start > cur) return ws[i]; }
+  return null;
+}
+// その帯が手動優先（解除済み）か
+function isOverridden(name, win){
+  var ov = state && state.manual_override ? state.manual_override[name] : null;
+  if (!ov) return false;
+  if (typeof ov === "string") return true;                       // 旧形式=その日全部
+  if (ov.all) return true;
+  return !!(ov.win && ov.win[win.start + "-" + win.end]);
 }
 
 var token = null;
@@ -345,7 +562,10 @@ var serverOffset = 0;      // サーバー時刻 - 端末時刻（端末の時�
 var timeLimit = 15;
 var activeTab = "all";
 var currentView = "login";
-var alarmFired = {};
+function loadAlarmFired(){ try { return JSON.parse(sessionStorage.getItem("oc_alarm") || "{}"); } catch(e){ return {}; } }
+function saveAlarmFired(){ try { sessionStorage.setItem("oc_alarm", JSON.stringify(alarmFired)); } catch(e){} }
+var alarmFired = loadAlarmFired();
+var alarmSeeded = false;   // 初回ロード時に既に超過している卓は鳴らさない（画面には赤く出る）
 var lastRenderKey = "";
 var connected = true;
 
@@ -373,14 +593,26 @@ function api(params){
   }).then(function(r){ return r.json(); });
 }
 
+var pollFails = 0;      // ポーリング連続失敗回数
+var lastSyncMs = 0;     // 最後にサーバーと同期できた時刻（端末時計）
+
 function setConnected(ok){
   connected = ok;
-  ["home","tables","queue"].forEach(function(v){
+  ["home","tables","queue","schedule","venue-edit"].forEach(function(v){
     var el = $("conn-" + v);
     if (!el) return;
     el.textContent = ok ? "接続中" : "接続が切れています";
     el.classList.toggle("bad", !ok);
   });
+  // 3回連続(約7.5秒)で失敗したら赤帯を大きく表示。復帰したら消す
+  if (ok){
+    pollFails = 0;
+    lastSyncMs = Date.now();
+    $("net-banner").classList.remove("show");
+  } else {
+    pollFails++;
+    if (pollFails >= 3 && token) $("net-banner").classList.add("show");
+  }
 }
 
 function applyState(s){
@@ -460,11 +692,15 @@ function logout(){
 
 /* ---------- 画面切替 ---------- */
 function showView(name){
+  // 開きっぱなしのモーダルは画面切替時に必ず閉じる（別画面に残るのを防ぐ）
+  closeSeatModal();
+  closeForm();
   currentView = name;
-  ["login","home","tables","queue"].forEach(function(v){
+  ["login","home","tables","queue","schedule","venue-edit"].forEach(function(v){
     $("view-" + v).classList.toggle("active", v === name);
   });
   lastRenderKey = "";
+  if (name === "schedule" && state) renderSchedule();   // 設定画面は入力中に作り直さない
   if (state) render();
   window.scrollTo(0, 0);
   if (name === "login") setTimeout(function(){ $("login-pw").focus(); }, 50);
@@ -474,7 +710,7 @@ function showView(name){
 function render(){
   if (!state) return;
   renderStats();
-  var key = JSON.stringify({ t: state.tables, q: state.queue, v: currentView, a: activeTab });
+  var key = JSON.stringify({ t: state.tables, q: state.queue, v: currentView, a: activeTab, ve: state.venue });
   if (key !== lastRenderKey){
     lastRenderKey = key;
     if (currentView === "tables") renderTables();
@@ -483,7 +719,560 @@ function render(){
   tick();
 }
 
+/* ---------- 自動休憩 設定画面 ---------- */
+// 自動休憩の設定画面のエリア分けは、会場の部屋構成から作る。[部屋名, [卓名...]] の配列。
+function schedAreas(){
+  var rooms = (state && state.venue && state.venue.rooms) ? state.venue.rooms : [];
+  return rooms.map(function(room){
+    return [ room.name || "", (room.booths || []).map(function(b){ return b.name; }) ];
+  });
+}
+
+function winPairHtml(st, en){
+  return '<span class="win-pair">'
+    + '<input type="time" class="win-s" value="' + (st || "") + '">'
+    + '<span>〜</span>'
+    + '<input type="time" class="win-e" value="' + (en || "") + '">'
+    + '<button type="button" class="win-del" data-action="win-del" title="この時間帯を削除">×</button>'
+    + '</span>';
+}
+
+function renderSchedule(){
+  if (!state) return;
+  var over  = state.manual_override || {};
+  var auto  = state.auto_rest || {};
+  var html = "";
+  schedAreas().forEach(function(area, ai){
+    var rows = "";
+    area[1].forEach(function(name){
+      var t = tableByName(name);
+      if (!t) return;
+      var ws = winsOf(name);
+      var chip = "";
+      if (auto[name]) chip = '<span class="sc-chip rest">休憩中(自動)</span>';
+      else if (over[name]) chip = '<span class="sc-chip manual">手動優先</span>';
+      var pairs = ws.length
+        ? ws.map(function(w){ return winPairHtml(w.start, w.end); }).join("")
+        : winPairHtml("", "");
+      rows += '<div class="sched-row" id="schrow-' + t.id + '" data-tid="' + t.id + '">'
+        + '<input type="checkbox" class="sched-check" data-id="' + t.id + '" data-area="' + ai + '">'
+        + '<span class="name">' + esc(name) + chip + '</span>'
+        + '<div class="win-list">' + pairs
+        + '<button type="button" class="btn-winadd" data-action="win-add">＋時間帯を追加</button>'
+        + '</div></div>';
+    });
+    if (rows) html += '<div class="sched-area"><h2>'
+      + '<label><input type="checkbox" class="area-check" data-area="' + ai + '"> ' + esc(area[0]) + '</label></h2>'
+      + '<div class="sched-row head"><span></span><span class="col-h">卓</span><span class="col-h">休憩の時間帯（複数可）</span></div>'
+      + rows + '</div>';
+  });
+  $("sched-list").innerHTML = html;
+  updateSelCount();
+}
+
+var MAX_WINS = 6;
+
+// 行に時間帯ペアを1つ追加（上限あり）。st/en 指定時はその値を入れる
+function addWinPair(rowEl, st, en){
+  var list = rowEl.querySelector('.win-list');
+  if (!list) return false;
+  if (list.querySelectorAll('.win-pair').length >= MAX_WINS) return false;
+  var addBtn = list.querySelector('.btn-winadd');
+  var tmp = document.createElement('div');
+  tmp.innerHTML = winPairHtml(st || "", en || "");
+  list.insertBefore(tmp.firstChild, addBtn);
+  return true;
+}
+
+// 行から時間帯を収集して検証。返り値 {ok:true, wins:[{s,e}]} か {ok:false, msg}
+function collectWins(rowEl, name){
+  var wins = [];
+  var pairs = rowEl.querySelectorAll('.win-pair');
+  for (var i=0;i<pairs.length;i++){
+    var s = pairs[i].querySelector('.win-s').value;
+    var e = pairs[i].querySelector('.win-e').value;
+    if (!s && !e) continue;                                      // 両方空は無視
+    if (!s || !e) return { ok:false, msg: name + "：開始と終了の両方を入れてください" };
+    if (s >= e)   return { ok:false, msg: name + "：開始は終了より前にしてください" };
+    wins.push({ s:s, e:e });
+  }
+  wins.sort(function(a,b){ return a.s < b.s ? -1 : 1; });
+  for (var j=1;j<wins.length;j++){
+    if (wins[j-1].e > wins[j].s) return { ok:false, msg: name + "：時間帯が重なっています" };
+  }
+  return { ok:true, wins:wins };
+}
+
+// 選択中の卓数を数えて表示し、行のハイライトも更新
+function updateSelCount(){
+  var n = 0;
+  document.querySelectorAll('.sched-check').forEach(function(c){
+    var row = $("schrow-" + c.dataset.id);
+    if (c.checked){ n++; if (row) row.classList.add("selected"); }
+    else if (row) row.classList.remove("selected");
+  });
+  var el = $("sel-count");
+  if (el) el.textContent = n + "卓を選択中";
+  return n;
+}
+
+// 全選択 / 全解除
+function selectAllSched(v){
+  document.querySelectorAll('.sched-check').forEach(function(c){ c.checked = v; });
+  document.querySelectorAll('.area-check').forEach(function(c){ c.checked = v; });
+  updateSelCount();
+}
+
+// エリア見出しのチェックで、そのエリアの卓をまとめて選択/解除
+function toggleArea(areaIdx, v){
+  document.querySelectorAll('.sched-check[data-area="' + areaIdx + '"]').forEach(function(c){ c.checked = v; });
+  updateSelCount();
+}
+
+// 時刻を「選択した卓だけ」または「全卓」に反映する
+// 一括反映（追加方式）: 入力した時間帯を、対象の卓に「追加」する。
+// 既存の帯は残す。完全一致の重複・重なり・上限超過はスキップして最後に件数を知らせる。
+function bulkFillSchedule(onlySelected){
+  var s = $("bulk-start").value, e = $("bulk-end").value;
+  if (!s || !e){ alert("開始と終了の時刻を入れてください"); return; }
+  if (s >= e){ alert("開始は終了より前の時刻にしてください"); return; }
+  var rows = [];
+  document.querySelectorAll('.sched-check').forEach(function(c){
+    if (!onlySelected || c.checked){
+      var row = $("schrow-" + c.dataset.id);
+      if (row) rows.push(row);
+    }
+  });
+  if (onlySelected && rows.length === 0){ alert("先に左のチェックで卓を選んでください"); return; }
+
+  var added = 0, skipped = 0;
+  rows.forEach(function(row){
+    // 既存の帯と比較（空ペアは対象外）
+    var overlap = false, dup = false, emptyPair = null, count = 0;
+    row.querySelectorAll('.win-pair').forEach(function(pr){
+      var ps = pr.querySelector('.win-s').value, pe = pr.querySelector('.win-e').value;
+      if (!ps && !pe){ if (!emptyPair) emptyPair = pr; return; }
+      count++;
+      if (ps === s && pe === e) dup = true;
+      else if (ps < e && s < pe) overlap = true;
+    });
+    if (dup || overlap || count >= MAX_WINS){ skipped++; return; }
+    if (emptyPair){
+      emptyPair.querySelector('.win-s').value = s;
+      emptyPair.querySelector('.win-e').value = e;
+      added++;
+    } else if (addWinPair(row, s, e)){
+      added++;
+    } else {
+      skipped++;
+    }
+  });
+  var msg = added + "卓に追加しました";
+  if (skipped) msg += "（" + skipped + "卓は重複・重なり・上限のためスキップ）";
+  showBulkNote(msg);
+}
+
+function showBulkNote(msg){
+  var el = $("bulk-note");
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = "";
+  clearTimeout(showBulkNote._t);
+  showBulkNote._t = setTimeout(function(){ el.style.display = "none"; }, 4000);
+}
+
+function saveSchedule(){
+  if (!state) return;
+  var params = { action: "schedule_set", token: token };
+  var bad = null;
+  state.tables.forEach(function(t){
+    var row = $("schrow-" + t.id);
+    if (!row || bad) return;
+    var r = collectWins(row, t.name);
+    if (!r.ok){ bad = r.msg; return; }
+    params["s" + t.id] = r.wins.map(function(w){ return w.s + "|" + w.e; }).join(",");   // 0個なら空文字=削除
+  });
+  if (bad){ alert("❌ " + bad); return; }
+  api(params).then(function(r){
+    if (!r.ok){ alert("❌ " + r.error); return; }
+    applyState(r);
+    alert("✅ 自動休憩の設定を保存しました");
+    showView("home");
+  }).catch(function(){ alert("⚠️ サーバーにつながりません"); });
+}
+
+/* ===================== 会場・レイアウト エディタ ===================== */
+var editVenues = null;   // venue_get で取得した全プリセット {active,order,list}
+var editKey = null;      // 編集中のプリセットkey
+var editData = null;     // 編集中の作業コピー { name, rooms:[...], topics:[...] }
+var veSel = null;        // マス目配置で選択中のブース {ri, bi}
+
+function openVenueEditor(){
+  api({ action:"venue_get", token: token }).then(function(r){
+    if (!r.ok){ alert("❌ " + r.error); return; }
+    editVenues = r.venues;
+    veLoad(editVenues.active);
+    showView("venue-edit");
+    renderVenueEditor();
+  }).catch(function(){ alert("⚠️ サーバーにつながりません"); });
+}
+
+function veLoad(key){
+  editKey = key;
+  var src = (editVenues.list && editVenues.list[key]) ? editVenues.list[key] : { name:key, rooms:[], topics:[] };
+  editData = JSON.parse(JSON.stringify({ name: src.name || key, rooms: src.rooms || [], topics: src.topics || [], floor: src.floor || {} }));
+  editData.floor.mode = editData.floor.mode === "map" ? "map" : "auto";
+  editData.floor.cols = editData.floor.cols || 4;
+  editData.floor.rows = editData.floor.rows || 4;
+  editData.rooms.forEach(function(rm){
+    rm.mode = rm.mode === "grid" ? "grid" : "auto";
+    rm.cols = rm.cols || 4; rm.rows = rm.rows || 0;
+    rm.booths = rm.booths || [];
+    if (rm.fx === undefined) rm.fx = null;
+    if (rm.fy === undefined) rm.fy = null;
+    rm.fw = rm.fw || 1; rm.fh = rm.fh || 1;
+    rm.color = rm.color || "";
+  });
+  editData.topics.forEach(function(t){ if (!Array.isArray(t.subs)) t.subs = []; });
+  veSel = null; veFSel = null;
+}
+
+function renderVenueEditor(){
+  if (!editData) return;
+  // キャンパスタブ
+  var tabs = "";
+  (editVenues.order || []).forEach(function(k){
+    var nm = (editVenues.list[k] && editVenues.list[k].name) ? editVenues.list[k].name : k;
+    var isEdit = (k === editKey), isActive = (k === editVenues.active);
+    tabs += '<span class="ve-tab' + (isEdit ? ' active' : '') + '" data-action="ve-tab" data-key="' + esc(k) + '">'
+      + esc(nm) + (isActive ? ' <span class="use">✓使用中</span>' : '') + '</span>';
+  });
+  tabs += '<button class="ve-actbtn" data-action="ve-add-campus">＋ キャンパスを追加</button>';
+  var canSwitch = (editKey !== editVenues.active);
+  var canDelete = (editKey !== editVenues.active) && ((editVenues.order || []).length > 1);
+  var ctl = '';
+  if (canSwitch) ctl += '<button class="btn btn-primary" data-action="ve-activate" style="min-height:36px;padding:7px 12px;">この会場を当日使う（切替）</button>';
+  if (canDelete) ctl += '<button class="ve-rdel" data-action="ve-del-campus" style="margin-left:8px;">このキャンパスを削除</button>';
+  $("ve-campus").innerHTML = '<div class="cl">当日使うキャンパス（クリックで編集対象を切替）</div>'
+    + '<div class="ve-tabs">' + tabs + '</div>'
+    + '<div class="ve-namebox"><span style="font-size:13px;color:var(--muted);font-weight:700;">編集中の名前:</span>'
+    + '<input id="ve-name" value="' + esc(editData.name) + '"> ' + ctl + '</div>';
+
+  // 相談内容（各項目に「サブ選択肢」設定を付ける）
+  var chips = "";
+  editData.topics.forEach(function(t, ti){
+    var subN = (t.subs && t.subs.length) ? t.subs.length : 0;
+    chips += '<span class="chip"><input data-ve-topic="' + ti + '" value="' + esc(t.value) + '" style="border:none;background:transparent;font-weight:700;color:var(--primary-d);width:' + Math.max(6, (t.value||"").length + 2) + 'ch;font-family:inherit;">'
+      + '<button class="chip-sub" data-action="ve-topic-subs" data-ti="' + ti + '" title="この相談内容に「詳しい種類（サブ選択肢）」を設定">'
+      + (subN ? 'サブ' + subN : '＋サブ') + '</button>'
+      + '<span class="x" data-action="ve-del-topic" data-ti="' + ti + '">×</span></span>';
+  });
+  chips += '<span class="chip chip-add" data-action="ve-add-topic">＋ 追加</span>';
+  $("ve-topic-chips").innerHTML = chips;
+
+  renderVeFloor();
+  renderVeRooms();
+}
+
+var veFSel = null;   // 会場マップで配置しようと選択中の部屋index
+
+// 会場マップ（部屋の位置）エディタ
+function renderVeFloor(){
+  var fl = editData.floor;
+  var head = '<h2>会場マップ（部屋の位置）</h2>'
+    + '<div class="ve-mode" style="margin-bottom:8px;">'
+    + '<span class="' + (fl.mode==="auto"?"on":"") + '" data-action="ve-fmode" data-mode="auto">自動で縦に並べる</span>'
+    + '<span class="' + (fl.mode==="map"?"on":"") + '" data-action="ve-fmode" data-mode="map">マップで配置</span></div>';
+  if (fl.mode !== "map"){
+    $("ve-floor").innerHTML = head + '<div class="ve-fhint">部屋は登録順に上から縦に並びます。実際の建物の形に合わせたい場合は「マップで配置」を選んでください。</div>';
+    return;
+  }
+  var cols = Math.max(1, fl.cols||4), rows = Math.max(1, fl.rows||4);
+  // 占有マップ（重なり判定用）
+  var occ = {};
+  editData.rooms.forEach(function(rm, ri){
+    if (rm.fx==null || rm.fy==null) return;
+    for (var y=0;y<(rm.fh||1);y++) for (var x=0;x<(rm.fw||1);x++){ occ[(rm.fy+y)+","+(rm.fx+x)] = ri; }
+  });
+  var grid = '<div class="ve-fgrid" style="grid-template-columns:repeat(' + cols + ',1fr)">';
+  for (var y=0;y<rows;y++){
+    for (var x=0;x<cols;x++){
+      var ri = occ[y+","+x];
+      if (ri != null){
+        var rm = editData.rooms[ri];
+        if (rm.fx===x && rm.fy===y){
+          // 部屋ボックスの左上セルにだけ描画（span）
+          grid += '<div class="ve-froom" style="grid-column:'+(x+1)+' / span '+(rm.fw||1)+';grid-row:'+(y+1)+' / span '+(rm.fh||1)+';">'
+            + '<span class="rx" data-action="ve-room-unplace" data-ri="'+ri+'">×</span>'
+            + '<span class="rnm">'+esc(rm.name||("部屋"+(ri+1)))+'</span>'
+            + '<span class="rsz">幅<button data-action="ve-room-w" data-ri="'+ri+'" data-d="-1">−</button>'+(rm.fw||1)+'<button data-action="ve-room-w" data-ri="'+ri+'" data-d="1">＋</button>'
+            + '　高<button data-action="ve-room-h" data-ri="'+ri+'" data-d="-1">−</button>'+(rm.fh||1)+'<button data-action="ve-room-h" data-ri="'+ri+'" data-d="1">＋</button></span>'
+            + '</div>';
+        }
+        // それ以外の占有セルは span により隠れるので出力しない
+      } else {
+        grid += '<div class="ve-fcell" data-action="ve-room-place" data-x="'+x+'" data-y="'+y+'">＋</div>';
+      }
+    }
+  }
+  grid += '</div>';
+  // 未配置の部屋パレット
+  var pal = "";
+  editData.rooms.forEach(function(rm, ri){
+    if (rm.fx!=null && rm.fy!=null) return;
+    var sel = (veFSel===ri) ? " sel" : "";
+    pal += '<span class="ve-fpchip'+sel+'">'+esc(rm.name||("部屋"+(ri+1)))
+      + '<button data-action="ve-room-select" data-ri="'+ri+'">'+(veFSel===ri?"選択中":"置く")+'</button></span>';
+  });
+  if (!pal) pal = '<span style="font-size:12px;color:var(--muted);">すべての部屋が配置されています</span>';
+  $("ve-floor").innerHTML = head
+    + '<div class="ve-fhint">未配置の部屋の「置く」→マスをタップで配置。部屋の幅・高さも変えられます。空きマスは通路になります。</div>'
+    + '<div class="ve-gtools"><span>マップの大きさ:</span>'
+    + '<span>横</span><span class="ve-step"><button data-action="ve-fcols" data-d="-1">−</button><b>'+cols+'</b><button data-action="ve-fcols" data-d="1">＋</button></span>'
+    + '<span>縦</span><span class="ve-step"><button data-action="ve-frows" data-d="-1">−</button><b>'+rows+'</b><button data-action="ve-frows" data-d="1">＋</button></span></div>'
+    + grid + '<div class="ve-fpal"><div class="pl">未配置の部屋</div>'+pal+'</div>';
+}
+
+// 指定範囲が空いているか（自分ri以外の占有と重ならないか、マップ内か）
+function veFits(ri, fx, fy, fw, fh){
+  var fl = editData.floor;
+  if (fx<0 || fy<0 || fx+fw > (fl.cols||4) || fy+fh > (fl.rows||4)) return false;
+  for (var i=0;i<editData.rooms.length;i++){
+    if (i===ri) continue;
+    var r = editData.rooms[i];
+    if (r.fx==null||r.fy==null) continue;
+    if (fx < r.fx+(r.fw||1) && r.fx < fx+fw && fy < r.fy+(r.fh||1) && r.fy < fy+fh) return false;
+  }
+  return true;
+}
+function veFMode(mode){ veSyncFromDom(); editData.floor.mode=mode; veFSel=null; renderVenueEditor(); }
+function veFCols(d){ veSyncFromDom(); editData.floor.cols=Math.min(12,Math.max(1,(editData.floor.cols||4)+d)); renderVenueEditor(); }
+function veFRows(d){ veSyncFromDom(); editData.floor.rows=Math.min(12,Math.max(1,(editData.floor.rows||4)+d)); renderVenueEditor(); }
+function veRoomSelect(ri){ veSyncFromDom(); veFSel=(veFSel===ri)?null:ri; renderVenueEditor(); }
+function veRoomPlace(x,y){ veSyncFromDom(); if(veFSel==null){ alert("先に下の未配置の部屋を選んでください"); return; } var rm=editData.rooms[veFSel]; if(!veFits(veFSel,x,y,rm.fw||1,rm.fh||1)){ alert("そのマスには置けません（はみ出す/他の部屋と重なる）"); return; } rm.fx=x; rm.fy=y; veFSel=null; renderVenueEditor(); }
+function veRoomUnplace(ri){ veSyncFromDom(); editData.rooms[ri].fx=null; editData.rooms[ri].fy=null; renderVenueEditor(); }
+function veRoomW(ri,d){ veSyncFromDom(); var rm=editData.rooms[ri]; var nw=Math.max(1,(rm.fw||1)+d); if(veFits(ri,rm.fx,rm.fy,nw,rm.fh||1)){ rm.fw=nw; } renderVenueEditor(); }
+function veRoomH(ri,d){ veSyncFromDom(); var rm=editData.rooms[ri]; var nh=Math.max(1,(rm.fh||1)+d); if(veFits(ri,rm.fx,rm.fy,rm.fw||1,nh)){ rm.fh=nh; } renderVenueEditor(); }
+
+function renderVeRooms(){
+  var html = "";
+  editData.rooms.forEach(function(rm, ri){ html += veRoomHtml(rm, ri); });
+  $("ve-rooms").innerHTML = html;
+}
+
+function veRoomHtml(rm, ri){
+  var head = '<div class="ve-rhead">'
+    + '<input class="rn" data-ve="rname" data-ri="' + ri + '" value="' + esc(rm.name) + '" placeholder="部屋名">'
+    + '<input class="rt" data-ve="rtag" data-ri="' + ri + '" value="' + esc(rm.tag || "") + '" placeholder="タグ">'
+    + '<input class="rm" data-ve="rmemo" data-ri="' + ri + '" value="' + esc(rm.memo || "") + '" placeholder="メモ(任意)">'
+    + '<span class="ve-mode"><span class="' + (rm.mode === "auto" ? "on" : "") + '" data-action="ve-mode" data-ri="' + ri + '" data-mode="auto">自動整列</span>'
+    + '<span class="' + (rm.mode === "grid" ? "on" : "") + '" data-action="ve-mode" data-ri="' + ri + '" data-mode="grid">マス目配置</span></span>'
+    + '<label class="ve-color">色 <input type="color" data-ve="rcolor" data-ri="' + ri + '" value="' + (rm.color || "#eef2f7") + '">'
+    + (rm.color ? '<span class="ve-color-clear" data-action="ve-color-clear" data-ri="' + ri + '">なしに</span>' : '') + '</label>'
+    + '<button class="ve-rdel" data-action="ve-del-room" data-ri="' + ri + '">部屋を削除</button></div>';
+
+  var body;
+  if (rm.mode === "grid"){
+    body = veGridBody(rm, ri);
+  } else {
+    var bs = "";
+    rm.booths.forEach(function(b, bi){
+      bs += '<div class="ve-booth">'
+        + '<span class="mv" data-action="ve-move" data-ri="' + ri + '" data-bi="' + bi + '" data-dir="-1" title="前へ">↑</span>'
+        + '<span class="mv" data-action="ve-move" data-ri="' + ri + '" data-bi="' + bi + '" data-dir="1" title="後へ">↓</span>'
+        + '<input data-ve="bname" data-ri="' + ri + '" data-bi="' + bi + '" value="' + esc(b.name) + '" placeholder="ブース名">'
+        + '<span class="x" data-action="ve-del-booth" data-ri="' + ri + '" data-bi="' + bi + '">×</span></div>';
+    });
+    bs += '<div class="ve-booth ve-badd" data-action="ve-add-booth" data-ri="' + ri + '">＋ ブースを追加</div>';
+    body = '<div class="ve-hint">ブースを追加すると自動で並びます。↑↓で並べ替え。</div><div class="ve-booths">' + bs + '</div>';
+  }
+  return '<div class="ve-room">' + head + '<div class="ve-body">' + body + '</div></div>';
+}
+
+function veGridBody(rm, ri){
+  var cols = Math.max(1, rm.cols || 4);
+  var rows = Math.max(1, rm.rows || Math.ceil(rm.booths.filter(function(b){return b.cell!=null;}).length / cols) || 1);
+  var byCell = {};
+  rm.booths.forEach(function(b, bi){ if (b.cell != null) byCell[b.cell] = bi; });
+  var grid = '<div class="ve-grid" style="grid-template-columns:repeat(' + cols + ',1fr)">';
+  for (var c = 0; c < cols * rows; c++){
+    if (byCell[c] != null){
+      var b = rm.booths[byCell[c]];
+      grid += '<div class="ve-cell filled" data-action="ve-grid-remove" data-ri="' + ri + '" data-bi="' + byCell[c] + '"><span class="x">×</span>' + esc(b.label || b.name) + '</div>';
+    } else {
+      grid += '<div class="ve-cell empty" data-action="ve-grid-place" data-ri="' + ri + '" data-cell="' + c + '">＋</div>';
+    }
+  }
+  grid += '</div>';
+  // 未配置ブースのパレット（名前は編集、「置く」で選択→マスをタップ）
+  var pal = "";
+  rm.booths.forEach(function(b, bi){
+    if (b.cell != null) return;
+    var sel = (veSel && veSel.ri === ri && veSel.bi === bi);
+    pal += '<span class="ve-pchip' + (sel ? " sel" : "") + '">'
+      + '<input data-ve="bname" data-ri="' + ri + '" data-bi="' + bi + '" value="' + esc(b.name) + '">'
+      + '<button class="ve-place" data-action="ve-grid-select" data-ri="' + ri + '" data-bi="' + bi + '">' + (sel ? "選択中" : "置く") + '</button>'
+      + '<span class="x" data-action="ve-del-booth" data-ri="' + ri + '" data-bi="' + bi + '">×</span></span>';
+  });
+  pal += '<span class="ve-pchip" style="border-style:dashed;cursor:pointer;" data-action="ve-add-booth" data-ri="' + ri + '"><span style="color:var(--primary);font-weight:700;padding:2px 4px;">＋ ブースを追加</span></span>';
+  return '<div class="ve-gtools"><span>マスの大きさ:</span>'
+    + '<span>横</span><span class="ve-step"><button data-action="ve-cols" data-ri="' + ri + '" data-d="-1">−</button><b>' + cols + '</b><button data-action="ve-cols" data-ri="' + ri + '" data-d="1">＋</button></span>'
+    + '<span>縦</span><span class="ve-step"><button data-action="ve-rows" data-ri="' + ri + '" data-d="-1">−</button><b>' + rows + '</b><button data-action="ve-rows" data-ri="' + ri + '" data-d="1">＋</button></span></div>'
+    + '<div class="ve-hint">未配置のブースをタップ→置きたいマスをタップ。マスの×で外せます。</div>'
+    + grid
+    + '<div class="ve-pal"><div class="pl">未配置のブース</div>' + pal + '</div>';
+}
+
+// DOMの入力値を editData に取り込む（再描画・保存の前に必ず呼ぶ）
+function veSyncFromDom(){
+  if (!editData) return;
+  var nm = $("ve-name"); if (nm) editData.name = nm.value;
+  document.querySelectorAll('#ve-topic-chips input[data-ve-topic]').forEach(function(el){
+    var ti = +el.dataset.veTopic, t = editData.topics[ti];
+    if (t){ var v = el.value.trim(); t.value = v; t.label = v; }
+  });
+  document.querySelectorAll('#ve-rooms [data-ve]').forEach(function(el){
+    var ri = +el.dataset.ri, rm = editData.rooms[ri];
+    if (!rm) return;
+    var k = el.dataset.ve;
+    if (k === "rname") rm.name = el.value;
+    else if (k === "rtag") rm.tag = el.value;
+    else if (k === "rmemo") rm.memo = el.value;
+    else if (k === "bname"){
+      var bi = +el.dataset.bi, b = rm.booths[bi];
+      if (b){ var nv = el.value.trim(); if (nv !== b.name){ b.name = nv; b.label = nv; } }
+    }
+  });
+}
+
+function veReRender(){ veSyncFromDom(); renderVenueEditor(); }
+
+/* ---- 構造操作 ---- */
+function veAddRoom(){ veSyncFromDom(); editData.rooms.push({ name:"新しい部屋", tag:"", memo:"", mode:"auto", cols:4, rows:0, booths:[] }); renderVenueEditor(); }
+function veDelRoom(ri){ veSyncFromDom(); if (confirm("この部屋を削除しますか？（中のブースも消えます）")){ editData.rooms.splice(ri,1); renderVenueEditor(); } }
+function veMode(ri, mode){ veSyncFromDom(); editData.rooms[ri].mode = mode; if (mode === "auto"){ editData.rooms[ri].booths.forEach(function(b){ b.cell = null; }); } veSel = null; renderVenueEditor(); }
+function veAddBooth(ri){ veSyncFromDom(); editData.rooms[ri].booths.push({ name:"新ブース", label:"新ブース", cell:null }); renderVenueEditor(); }
+function veDelBooth(ri, bi){ veSyncFromDom(); editData.rooms[ri].booths.splice(bi,1); veSel=null; renderVenueEditor(); }
+function veMove(ri, bi, dir){ veSyncFromDom(); var bs=editData.rooms[ri].booths, j=bi+dir; if(j<0||j>=bs.length) return; var tmp=bs[bi]; bs[bi]=bs[j]; bs[j]=tmp; renderVenueEditor(); }
+function veCols(ri, d){ veSyncFromDom(); var rm=editData.rooms[ri]; rm.cols=Math.min(6,Math.max(1,(rm.cols||4)+d)); renderVenueEditor(); }
+function veRows(ri, d){ veSyncFromDom(); var rm=editData.rooms[ri]; rm.rows=Math.min(12,Math.max(1,(rm.rows|| Math.ceil(rm.booths.filter(function(b){return b.cell!=null;}).length/(rm.cols||4))||1)+d)); renderVenueEditor(); }
+function veGridSelect(ri, bi){ veSyncFromDom(); veSel = (veSel && veSel.ri===ri && veSel.bi===bi) ? null : {ri:ri,bi:bi}; renderVenueEditor(); }
+function veGridPlace(ri, cell){ veSyncFromDom(); if(!veSel || veSel.ri!==ri){ alert("先に下の未配置ブースを選んでください"); return; } editData.rooms[ri].booths[veSel.bi].cell = cell; veSel=null; renderVenueEditor(); }
+function veGridRemove(ri, bi){ veSyncFromDom(); editData.rooms[ri].booths[bi].cell = null; renderVenueEditor(); }
+function veAddTopic(){ veSyncFromDom(); editData.topics.push({ value:"新しい相談内容", label:"新しい相談内容", group:"", subs:[] }); renderVenueEditor(); }
+function veDelTopic(ti){ veSyncFromDom(); editData.topics.splice(ti,1); renderVenueEditor(); }
+// サブ選択肢の編集（この相談内容を選んだら、ここから1つ選択必須になる）
+function veEditTopicSubs(ti){
+  veSyncFromDom();
+  var t = editData.topics[ti]; if (!t) return;
+  var cur = (t.subs || []).join("、");
+  var ans = prompt("「" + t.value + "」の詳しい種類（サブ選択肢）を、読点（、）区切りで入力してください。\n空にするとサブなしになります。\n例: 心理系、スポーツ系", cur);
+  if (ans === null) return;
+  t.subs = ans.split(/[、,]/).map(function(s){ return s.trim(); }).filter(function(s){ return s !== "" && s.indexOf(";")<0 && s.indexOf("|")<0 && s.indexOf(",")<0; });
+  renderVenueEditor();
+}
+
+function veTab(key){ veSyncFromDom(); if(!veConfirmDiscard()) return; veLoad(key); renderVenueEditor(); }
+var veDirty = false;   // （簡易）タブ切替時の破棄確認は毎回聞くのは煩雑なので確認だけ
+function veConfirmDiscard(){ return confirm("編集中の内容は保存していません。切り替えると失われます。よろしいですか？（保存する場合はキャンセルして「この会場を保存」）"); }
+
+function veAddCampus(){
+  veSyncFromDom();
+  var nm = prompt("新しいキャンパスの名前を入れてください（例: 第2キャンパス）");
+  if (!nm) return;
+  // 新しいkeyを生成
+  var n = 1, key;
+  do { key = "campus" + n; n++; } while (editVenues.list[key]);
+  editVenues.list[key] = { name: nm, rooms: [], topics: JSON.parse(JSON.stringify(editData.topics)) };
+  editVenues.order.push(key);
+  veLoad(key);
+  renderVenueEditor();
+  alert("「" + nm + "」を作成しました。部屋とブースを追加して「この会場を保存」を押してください。");
+}
+
+function veSaveVenue(){
+  veSyncFromDom();
+  // クライアント側の簡易チェック（区切り文字・空・重複）
+  var seen = {}, bad = null;
+  editData.rooms.forEach(function(rm){
+    rm.booths.forEach(function(b){
+      var nm = (b.name||"").trim();
+      if (!nm){ bad = bad || "空のブース名があります"; return; }
+      if (/[|,]/.test(nm)){ bad = bad || ("ブース名に使えない文字（, |）: " + nm); return; }
+      if (seen[nm]){ bad = bad || ("ブース名が重複しています: " + nm); return; }
+      seen[nm] = 1;
+    });
+  });
+  if (bad){ alert("❌ " + bad); return; }
+
+  var params = { action:"venue_set", token: token, key: editKey, name: editData.name,
+                 rooms: editData.rooms.length,
+                 floor_mode: editData.floor.mode, floor_cols: editData.floor.cols||4, floor_rows: editData.floor.rows||4,
+                 topics: editData.topics.map(function(t){ return t.value + "|" + t.label + "|" + (t.group||"") + "|" + ((t.subs||[]).join(";")); }).join(",") };
+  editData.rooms.forEach(function(rm, i){
+    params["r"+i+"_name"] = rm.name; params["r"+i+"_tag"] = rm.tag||""; params["r"+i+"_memo"] = rm.memo||"";
+    params["r"+i+"_mode"] = rm.mode; params["r"+i+"_cols"] = rm.cols||4; params["r"+i+"_rows"] = rm.rows||0;
+    params["r"+i+"_fx"] = (rm.fx==null?"":rm.fx); params["r"+i+"_fy"] = (rm.fy==null?"":rm.fy);
+    params["r"+i+"_fw"] = rm.fw||1; params["r"+i+"_fh"] = rm.fh||1; params["r"+i+"_color"] = rm.color||"";
+    params["r"+i+"_booths"] = rm.booths.map(function(b){ return b.name + "|" + (b.label||b.name) + "|" + (b.cell==null?"":b.cell); }).join(",");
+  });
+  veSubmitVenueSet(params, false);
+}
+
+function veSubmitVenueSet(params, force){
+  var p = force ? Object.assign({ force:1 }, params) : params;
+  api(p).then(function(r){
+    if (!r.ok){
+      if (!force && /使用中/.test(r.error)){
+        if (confirm("⚠️ " + r.error + "\n\nそれでも保存しますか？（使用中の相談は履歴に残ります）")){ veSubmitVenueSet(params, true); }
+        return;
+      }
+      alert("❌ " + r.error); return;
+    }
+    applyState(r);
+    alert("✅ 会場を保存しました");
+    showView("home");
+  }).catch(function(){ alert("⚠️ サーバーにつながりません"); });
+}
+
+function veActivate(){
+  veSyncFromDom();
+  if (!confirm("「" + (editVenues.list[editKey] ? editVenues.list[editKey].name : editKey) + "」を当日使う会場に切り替えます。\n（保存していない編集内容は反映されません。先に保存してください）\nよろしいですか？")) return;
+  veSubmitActivate(false);
+}
+function veSubmitActivate(force){
+  var p = { action:"venue_activate", token: token, key: editKey };
+  if (force) p.force = 1;
+  api(p).then(function(r){
+    if (!r.ok){
+      if (!force && /(使用中|待機列)/.test(r.error)){
+        if (confirm("⚠️ " + r.error + "\n\nそれでも切り替えますか？")){ veSubmitActivate(true); }
+        return;
+      }
+      alert("❌ " + r.error); return;
+    }
+    applyState(r);
+    editVenues.active = editKey;
+    alert("✅ 「" + (editVenues.list[editKey] ? editVenues.list[editKey].name : editKey) + "」に切り替えました");
+    renderVenueEditor();
+  }).catch(function(){ alert("⚠️ サーバーにつながりません"); });
+}
+
+function veDelCampus(){
+  if (!confirm("このキャンパスの設定を削除します。よろしいですか？")) return;
+  api({ action:"venue_delete", token: token, key: editKey }).then(function(r){
+    if (!r.ok){ alert("❌ " + r.error); return; }
+    applyState(r);
+    // 手元のリストからも消して稼働中に戻す
+    delete editVenues.list[editKey];
+    editVenues.order = editVenues.order.filter(function(k){ return k !== editKey; });
+    veLoad(editVenues.active);
+    renderVenueEditor();
+  }).catch(function(){ alert("⚠️ サーバーにつながりません"); });
+}
+
 function renderStats(){
+  $("stat-count").textContent   = state.stats.count;
   $("stat-count").textContent   = state.stats.count;
   $("stat-average").textContent = state.stats.average;
   $("stat-waiting").textContent = state.queue.length;
@@ -494,116 +1283,120 @@ function renderStats(){
 }
 
 function renderTables(){
-  renderStaff();
-  renderTeacher();
+  renderFloor();
+}
+
+// \u3053\u306e\u5353\u306b\u672c\u65e5\u306e\u624b\u52d5\u512a\u5148\uff08\u89e3\u9664\u6e08\u307f\u5e2f\uff09\u304c\u3042\u308b\u304b\uff08\u30b5\u30fc\u30d0\u30fc\u5074\u304c\u5f53\u65e5\u5206\u3060\u3051\u6b8b\u3059\uff09
+function hasOverrideToday(name){
+  var ov = state && state.manual_override ? state.manual_override[name] : null;
+  return !!ov;
+}
+
+// \u5353\u306e\u4e2d\u8eab\uff08\u72b6\u614b\u8868\u793a\uff09\u3002\u4f7f\u7528\u4e2d/\u7a7a\u304d/\u4f11\u61a9\u4e2d + \u4f11\u61a9\u306e\u88dc\u8db3\u8868\u793a\u3092\u5171\u901a\u5316
+function seatBody(t, shortLabel){
+  if (t.status === "\u4f7f\u7528\u4e2d"){
+    return '<span class="sn">' + esc(shortLabel) + '</span>'
+         + '<span class="se elapsed" data-start="' + t.start + '" data-id="' + t.id + '">0\u5206</span>'
+         + '<span class="sp"><i id="progress-' + t.id + '"></i></span>';
+  }
+  var ovMark = hasOverrideToday(t.name)
+    ? ' <span class="ovdot" title="\u672c\u65e5\u306e\u81ea\u52d5\u4f11\u61a9\u3092\u4e00\u90e8\u89e3\u9664\u6e08\u307f\uff08\u624b\u52d5\u512a\u5148\uff09">\u270b</span>' : '';
+  if (t.status === "\u7a7a\u304d"){
+    var h = '<span class="sn">' + esc(shortLabel) + '</span><span class="se">\u7a7a\u304d' + ovMark + '</span>';
+    // \u6b21\u306e\u4f11\u61a9\u958b\u59cb\u304c10\u5206\u4ee5\u5185\u306a\u3089\u4e88\u544a\uff08\u4f11\u61a9\u76f4\u524d\u306b15\u5206\u76f8\u8ac7\u3092\u59cb\u3081\u3066\u3057\u307e\u3046\u4e8b\u6545\u3092\u9632\u3050\uff09
+    var nw = nextWinOf(t.name);
+    if (nw && !isOverridden(t.name, nw)){
+      var mins = hmToMin(nw.start) - hmToMin(jstHHMM());
+      if (mins >= 0 && mins <= 10){
+        h += '<span class="soon">\u307e\u3082\u306a\u304f\u4f11\u61a9 ' + nw.start + '\u301c</span>';
+      }
+    }
+    return h;
+  }
+  // \u4f11\u61a9\u4e2d: \u81ea\u52d5\u4f11\u61a9\u306a\u3089\u300c\u301c\u7d42\u4e86\u6642\u523b\u300d\u3092\u51fa\u3059\uff08\u624b\u52d5\u4f11\u61a9\u306f\u5f93\u6765\u3069\u304a\u308a\uff09
+  var restLabel = "\u4f11\u61a9";
+  if (state.auto_rest && state.auto_rest[t.name]){
+    var cw = curWinOf(t.name);
+    if (cw) restLabel = "\u4f11\u61a9 \u301c" + cw.end;
+  }
+  return '<span class="sn">' + esc(shortLabel) + '</span><span class="se">' + restLabel + ovMark + '</span>';
 }
 
 function seatHtml(name, shortLabel){
   var t = tableByName(name);
   if (!t){ return '<span class="seat" style="visibility:hidden;"></span>'; }
-  var cls, body;
-  if (t.status === "\u4f7f\u7528\u4e2d"){
-    cls = "busy";
-    body = '<span class="sn">' + esc(shortLabel) + '</span>'
-         + '<span class="se elapsed" data-start="' + t.start + '" data-id="' + t.id + '">0\u5206</span>'
-         + '<span class="sp"><i id="progress-' + t.id + '"></i></span>';
-  } else if (t.status === "\u7a7a\u304d"){
-    cls = "free";
-    body = '<span class="sn">' + esc(shortLabel) + '</span><span class="se">\u7a7a\u304d</span>';
+  var cls = t.status === "\u4f7f\u7528\u4e2d" ? "busy" : (t.status === "\u7a7a\u304d" ? "free" : "rest");
+  return '<span class="seat ' + cls + '" id="table-' + t.id + '" data-seat="' + t.id + '">' + seatBody(t, shortLabel) + '</span>';
+}
+
+// \u7a3c\u50cd\u4e2d\u306e\u4f1a\u5834\u30c7\u30fc\u30bf\uff08state.venue.rooms\uff09\u304b\u3089\u914d\u7f6e\u56f3\u3092\u63cf\u753b\u3059\u308b\u3002
+// \u90e8\u5c4b\u3054\u3068\u306b mode='auto'\uff08\u81ea\u52d5\u6574\u5217\uff09/ 'grid'\uff08\u30de\u30b9\u76ee\u914d\u7f6e\uff09\u3067\u4e26\u3079\u308b\u3002
+// \u90e8\u5c4b1\u3064\u5206\u306eHTML\uff08\u4e2d\u8eab\u306f\u81ea\u52d5\u6574\u5217/\u30de\u30b9\u76ee\u914d\u7f6e\uff09\u3002style \u306f\u4f1a\u5834\u30de\u30c3\u30d7\u7528\u306egrid-area\u7b49\u3002
+function floorRoomHtml(room, style){
+  var free = 0, total = 0;
+  (room.booths || []).forEach(function(b){ var t = tableByName(b.name); if (t){ total++; if (t.status === "\u7a7a\u304d") free++; } });
+  var inner = '<div class="fl-head"><span class="fn">' + esc(room.name || "") + '</span>'
+    + (room.tag  ? '<span class="ft">' + esc(room.tag) + '</span>' : '')
+    + (room.memo ? '<span class="fm">' + esc(room.memo) + '</span>' : '')
+    + '<span class="fc">\u7a7a\u304d ' + free + ' / ' + total + '\u5353</span></div>';
+  if (room.mode === "grid"){
+    var cols = Math.max(1, room.cols || 4);
+    var byCell = {}, maxCell = -1;
+    (room.booths || []).forEach(function(b){ if (b.cell != null && b.cell >= 0){ byCell[b.cell] = b; if (b.cell > maxCell) maxCell = b.cell; } });
+    var rows = Math.max(room.rows || 0, Math.ceil((maxCell + 1) / cols), 1);
+    inner += '<div class="fl-grid" style="grid-template-columns:repeat(' + cols + ',minmax(72px,1fr))">';
+    for (var c = 0; c < cols * rows; c++){ var b = byCell[c]; inner += b ? seatHtml(b.name, b.label) : '<span class="seat gap"></span>'; }
+    inner += '</div>';
   } else {
-    cls = "rest";
-    body = '<span class="sn">' + esc(shortLabel) + '</span><span class="se">\u4f11\u61a9</span>';
+    inner += '<div class="fl-auto">';
+    (room.booths || []).forEach(function(b){ inner += seatHtml(b.name, b.label); });
+    inner += '</div>';
   }
-  return '<span class="seat ' + cls + '" id="table-' + t.id + '" data-seat="' + t.id + '">' + body + '</span>';
+  var st = style || "";
+  if (room.color){ st += "background:" + room.color + ";border-color:" + room.color + ";"; }
+  return '<div class="fl-room"' + (st ? ' style="' + st + '"' : '') + '>' + inner + '</div>';
 }
 
-function areaCount(names){
-  var free=0, total=0;
-  names.forEach(function(n){ var t=tableByName(n); if(t){ total++; if(t.status==="\u7a7a\u304d") free++; } });
-  return { free:free, total:total };
-}
+function renderFloor(){
+  var rooms = (state.venue && state.venue.rooms) ? state.venue.rooms : [];
+  var floor = (state.venue && state.venue.floor) ? state.venue.floor : { mode:"auto" };
+  var html = "";
 
-function renderStaff(){
-  var c303 = areaCount(SEAT_303);
-  var c304 = areaCount(SEAT_304);
-  var free = c303.free + c304.free, total = c303.total + c304.total;
-  var html = '<div class="venue-head"><h2>\u8077\u54e1\u30a8\u30ea\u30a2\u3000303\u30fb304</h2><span class="cnt">\u7a7a\u304d ' + free + ' / ' + total + '\u5353</span></div>'
-    + '<div class="rooms">'
-    +   '<div class="room"><span class="rno">303</span><span class="rtag">\u8cc7\u6599</span>'
-    +     '<div class="rsub">\u7559\u5b66\u30fb\u7a93\u53e3\u30fb\u5165\u5b66\u30bb\u30f3\u30bf\u30fc</div><div class="g3">'
-    +       seatHtml("\u5f37\u5316\u30af\u30e9\u30d6","\u5f37\u5316\u30af\u30e9\u30d6") + seatHtml("\u7559\u5b66\u2460","\u7559\u5b66\u2460") + seatHtml("\u5165\u8a66\u2468","\u5165\u8a66\u2468")
-    +       seatHtml("\u5b66\u751f\u751f\u6d3b","\u5b66\u751f\u751f\u6d3b") + '<span class="seat" style="visibility:hidden;"></span><span class="seat" style="visibility:hidden;"></span>'
-    +       seatHtml("\u30ad\u30e3\u30ea\u30a2\u30bb\u30f3\u30bf\u30fc","\u30ad\u30e3\u30ea\u30a2") + seatHtml("\u7559\u5b66\u2461","\u7559\u5b66\u2461") + seatHtml("\u5165\u8a66\u2469","\u5165\u8a66\u2469")
-    +     '</div></div>'
-    +   '<div class="room"><span class="rno">304</span><span class="rtag">\u8cc7\u6599</span>'
-    +     '<div class="rsub">\u5165\u5b66\u30bb\u30f3\u30bf\u30fc\u8077\u54e1</div><div class="g3">'
-    +       seatHtml("\u5165\u8a66\u2466","\u5165\u8a66\u2466") + seatHtml("\u5165\u8a66\u2463","\u5165\u8a66\u2463") + seatHtml("\u5165\u8a66\u2460","\u5165\u8a66\u2460")
-    +       seatHtml("\u5165\u8a66\u2467","\u5165\u8a66\u2467") + seatHtml("\u5165\u8a66\u2464","\u5165\u8a66\u2464") + seatHtml("\u5165\u8a66\u2461","\u5165\u8a66\u2461")
-    +       '<span class="seat" style="visibility:hidden;"></span>' + seatHtml("\u5165\u8a66\u2465","\u5165\u8a66\u2465") + seatHtml("\u5165\u8a66\u2462","\u5165\u8a66\u2462")
-    +     '</div></div>'
-    + '</div>';
-  $("floor-staff").innerHTML = html;
-}
-
-function absSeat(name, shortLabel, style){
-  var t = tableByName(name);
-  if (!t) return '';
-  var cls = t.status==="\u4f7f\u7528\u4e2d" ? "busy" : (t.status==="\u7a7a\u304d" ? "free" : "rest");
-  var body;
-  if (t.status==="\u4f7f\u7528\u4e2d"){
-    body = '<span class="sn">'+esc(shortLabel)+'</span>'
-         + '<span class="se elapsed" data-start="'+t.start+'" data-id="'+t.id+'">0\u5206</span>'
-         + '<span class="sp"><i id="progress-'+t.id+'"></i></span>';
+  if (floor.mode === "map"){
+    // \u4f1a\u5834\u30de\u30c3\u30d7: \u4f4d\u7f6e(fx,fy)\u30fb\u5927\u304d\u3055(fw,fh)\u3092\u6307\u5b9a\u3057\u305f\u90e8\u5c4b\u3092\u30b0\u30ea\u30c3\u30c9\u914d\u7f6e\u3002\u672a\u914d\u7f6e\u306f\u4e0b\u306b\u7e26\u7a4d\u307f\u3002
+    var fcols = Math.max(1, floor.cols || 4);
+    var placed = rooms.filter(function(r){ return r.fx != null && r.fy != null; });
+    var maxRow = 1;
+    placed.forEach(function(r){ maxRow = Math.max(maxRow, (r.fy||0) + (r.fh||1)); });
+    html += '<div class="fl-map" style="grid-template-columns:repeat(' + fcols + ',minmax(120px,1fr));grid-auto-rows:minmax(70px,auto)">';
+    placed.forEach(function(r){
+      var st = "grid-column:" + ((r.fx||0)+1) + " / span " + (r.fw||1) + ";grid-row:" + ((r.fy||0)+1) + " / span " + (r.fh||1) + ";";
+      html += floorRoomHtml(r, st);
+    });
+    html += '</div>';
+    var un = rooms.filter(function(r){ return !(r.fx != null && r.fy != null); });
+    if (un.length){
+      html += '<div class="fl-unplaced-note">\uff08\u30de\u30c3\u30d7\u672a\u914d\u7f6e\u306e\u90e8\u5c4b\uff09</div>';
+      un.forEach(function(r){ html += floorRoomHtml(r, ""); });
+    }
   } else {
-    body = '<span class="sn">'+esc(shortLabel)+'</span><span class="se">'+(t.status==="\u7a7a\u304d"?"\u7a7a\u304d":"\u4f11\u61a9")+'</span>';
+    rooms.forEach(function(room){ html += floorRoomHtml(room, ""); });
   }
-  return '<span class="seat '+cls+'" id="table-'+t.id+'" data-seat="'+t.id+'" style="'+style+'">'+body+'</span>';
-}
 
-function renderTeacher(){
-  var all = SEAT_KOKUSAI.concat(SEAT_KEIZAI, SEAT_ETRA, SEAT_SHO, SEAT_GEN);
-  var cc = areaCount(all);
-  var h = '<div class="venue-head"><h2>\u6559\u54e1\u30a8\u30ea\u30a2\u3000\u30e9\u30fc\u30cb\u30f3\u30b0\u30b3\u30e2\u30f3\u30ba</h2><span class="cnt">\u7a7a\u304d ' + cc.free + ' / ' + cc.total + '\u5353</span></div>'
-    + '<div class="commons">'
-    + '<div class="zone z-green" style="left:16px;top:44px;width:300px;height:238px;"></div>'
-    + '<span class="zlab" style="left:28px;top:52px;color:var(--ok);">\u56fd\u969b\u95a2\u4fc2 5\u5e2d \u30fb \u7a7a\u304d'+areaCount(SEAT_KOKUSAI).free+'</span>'
-    + absSeat("\u56fd\u2460\uff1a\u91ce\u6fa4\u57fa\u606d","\u56fd\u2460 \u91ce\u6fa4","left:28px;top:210px;width:86px;height:60px;")
-    + absSeat("\u56fd\u2461\uff1a\u91d1\u4fca\u660a","\u56fd\u2461 \u91d1","left:122px;top:210px;width:86px;height:60px;")
-    + absSeat("\u56fd\u2464\uff1a\u5409\u7530\u9f8d\u592a\u90ce","\u56fd\u2464 \u5409\u7530","left:216px;top:80px;width:86px;height:60px;")
-    + absSeat("\u56fd\u2463\uff1a\u6cb3\u5d0e\u771e\u6f84","\u56fd\u2463 \u6cb3\u5d0e","left:216px;top:150px;width:86px;height:60px;")
-    + absSeat("\u56fd\u2462\uff1a\u5c3e\u5f62\u5f18\u7d00","\u56fd\u2462 \u5c3e\u5f62","left:216px;top:210px;width:86px;height:60px;")
-    + '<div class="zone z-blue" style="left:330px;top:44px;width:196px;height:238px;"></div>'
-    + '<span class="zlab" style="left:342px;top:52px;color:var(--primary);">\u7d4c\u6e08 4\u5e2d \u30fb \u7a7a\u304d'+areaCount(SEAT_KEIZAI).free+'</span>'
-    + absSeat("\u7d4c\u2462\uff1a\u9752\u6728\u9686\u660e","\u7d4c\u2462 \u9752\u6728","left:432px;top:80px;width:86px;height:60px;")
-    + absSeat("\u7d4c\u2461\uff1a\u6e21\u8fba\u96c5\u4ec1","\u7d4c\u2461 \u6e21\u8fba","left:432px;top:150px;width:86px;height:60px;")
-    + absSeat("\u7d4c\u2463\uff1a\u5409\u6751\u4e00\u7537","\u7d4c\u2463 \u5409\u6751","left:342px;top:210px;width:86px;height:60px;")
-    + absSeat("\u7d4c\u2460\uff1a\u6cc9\u6df3","\u7d4c\u2460 \u6cc9","left:432px;top:210px;width:86px;height:60px;")
-    + '<div class="zone z-blue" style="left:16px;top:300px;width:300px;height:110px;"></div>'
-    + '<span class="zlab" style="left:28px;top:308px;color:var(--primary);">E\u30c8\u30e9 3\u5e2d \u30fb \u7a7a\u304d'+areaCount(SEAT_ETRA).free+'</span>'
-    + absSeat("E\u2461\uff1a\u30c4\u30f4\u30a9\u30eb\u30f3\u30c0\u30f3\u30de","E\u2461 \u30c4\u30f4\u30a9","left:28px;top:336px;width:86px;height:60px;")
-    + absSeat("E\u2460\uff1a\u30b7\u30e3\u30fc\u30ab\u30b7\u30ce\u30e9","E\u2460 \u30b7\u30e3\u30ab","left:122px;top:336px;width:86px;height:60px;")
-    + absSeat("E\u5165\u8a66\u2460","E\u5165\u8a66\u2460","left:216px;top:336px;width:86px;height:60px;")
-    + '<div class="zone z-orange" style="right:150px;top:120px;width:110px;height:162px;"></div>'
-    + '<span class="zlab" style="right:158px;top:128px;color:#d98324;">\u5546\uff08DS\uff09</span>'
-    + absSeat("\u5546\u2460\uff1a\u5c71\u53e3\u667a\u5f18","\u5546\u2460 \u5c71\u53e3","right:158px;top:156px;width:94px;height:60px;")
-    + absSeat("\u5546\u2461\uff1a\u7af9\u7530\u6052","\u5546\u2461 \u7af9\u7530","right:158px;top:222px;width:94px;height:60px;")
-    + '<div class="zone z-purple" style="right:12px;top:12px;width:120px;height:446px;"></div>'
-    + '<span class="zlab" style="right:20px;top:20px;color:#7d4ec4;">\u8a00\u30b3\u30df 6\u5e2d \u30fb \u7a7a\u304d'+areaCount(SEAT_GEN).free+'</span>'
-    + absSeat("\u8a00\u2465\uff1a\u6afb\u4e95\u529f\u7537","\u8a00\u2465 \u6afb\u4e95","right:20px;top:46px;width:104px;height:60px;")
-    + absSeat("\u8a00\u2464\uff1a\u6c34\u91ce\u539a\u5fd7","\u8a00\u2464 \u6c34\u91ce","right:20px;top:112px;width:104px;height:60px;")
-    + absSeat("\u8a00\u2463\uff1a\u6238\u8c37\u967d\u5b50","\u8a00\u2463 \u6238\u8c37","right:20px;top:178px;width:104px;height:60px;")
-    + absSeat("\u8a00\u2462\uff1a\u5c0f\u8c37\u771f\u7406\u5b50","\u8a00\u2462 \u5c0f\u8c37","right:20px;top:244px;width:104px;height:60px;")
-    + absSeat("\u8a00\u2461\uff1a\u7dd2\u65b9\u54f2\u4e5f","\u8a00\u2461 \u7dd2\u65b9","right:20px;top:310px;width:104px;height:60px;")
-    + absSeat("\u8a00\u2460\uff1a\u5e03\u6751\u5948\u7dd2\u5b50","\u8a00\u2460 \u5e03\u6751","right:20px;top:376px;width:104px;height:60px;")
-    + '</div>';
-  $("floor-teacher").innerHTML = h;
+  if (!rooms.length){
+    html = '<p class="no-queue">\u3053\u306e\u4f1a\u5834\u306b\u306f\u307e\u3060\u90e8\u5c4b\u30fb\u30d6\u30fc\u30b9\u304c\u767b\u9332\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002<br>\u30db\u30fc\u30e0 \u2192\u300c\u4f1a\u5834\u30fb\u30ec\u30a4\u30a2\u30a6\u30c8\u8a2d\u5b9a\u300d\u3067\u767b\u9332\u3057\u3066\u304f\u3060\u3055\u3044\u3002</p>';
+  }
+  $("floor").innerHTML = html;
+  updateElapsed();
 }
 
 function queueItemHtml(item, withTopic){
   var notes = item.other_notes
     ? '<div style="margin-top:5px;color:#666;"><small>' + esc(item.other_notes) + '</small></div>' : "";
+  var topicText = esc(item.consultation_topic) + (item.consultation_sub ? '（' + esc(item.consultation_sub) + '）' : "");
   var badge = withTopic
-    ? '<div style="margin-top:5px;"><span class="consultation-badge">' + esc(item.consultation_topic) + '</span></div>' : "";
+    ? '<div style="margin-top:5px;"><span class="consultation-badge">' + topicText + '</span></div>'
+    : (item.consultation_sub ? '<div style="margin-top:5px;"><span class="consultation-badge">' + esc(item.consultation_sub) + '</span></div>' : "");
   return '<div class="queue-item"><div class="queue-info">'
     + '<span class="number">No.' + esc(String(item.ticket_number)) + '</span>'
     + '<div class="info-detail"><div><strong>' + esc(item.gender) + '</strong> | ' + esc(item.party_size) + '名</div>'
@@ -619,7 +1412,7 @@ function queueItemHtml(item, withTopic){
 function renderQueueView(){
   var tabs = '<button class="tab-btn' + (activeTab==="all"?" active":"") + '" data-tab="all">すべて <span class="badge">'
            + state.queue.length + '</span></button>';
-  TOPICS.forEach(function(t){
+  topicsOf().forEach(function(t){
     var c = state.queue.filter(function(q){ return q.consultation_topic === t[0]; }).length;
     tabs += '<button class="tab-btn' + (activeTab===t[0]?" active":"") + '" data-tab="' + esc(t[0]) + '">'
           + esc(t[1]) + ' <span class="badge">' + c + '</span></button>';
@@ -665,10 +1458,6 @@ function tick(){
       if (m >= timeLimit) seat.classList.add("over");
       else if (m >= 12) seat.classList.add("warn");
     }
-    if (m >= timeLimit){
-      var key = id + ":" + start;
-      if (!alarmFired[key]){ alarmFired[key] = 1; triggerAlarm(id); }
-    }
   });
 
   document.querySelectorAll(".waiting-time").forEach(function(el){
@@ -680,25 +1469,129 @@ function tick(){
     else if (m > 5)  { el.style.color = "var(--warn)";   el.style.fontWeight = "bold"; }
     else             { el.style.color = "var(--ok)";     el.style.fontWeight = "600"; }
   });
+
+  // 通信断バナーの「◯秒前」を更新
+  if (lastSyncMs && $("net-banner").classList.contains("show")){
+    $("net-ago").textContent = Math.max(0, Math.floor((Date.now() - lastSyncMs) / 1000));
+  }
+
+  scanAlarms();
+}
+
+/* 超過アラームは画面のDOMではなく状態データから判定する。
+   → テーブル管理画面を開いていない端末（待機列・ホーム）でも鳴る。 */
+function scanAlarms(){
+  if (!state || !state.tables) return;
+  state.tables.forEach(function(t){
+    if (t.status !== "使用中" || !t.start) return;
+    if (minutesSince(t.start) < timeLimit) return;
+    var key = t.id + ":" + t.start;
+    if (alarmFired[key]) return;
+    alarmFired[key] = 1;
+    saveAlarmFired();
+    if (alarmSeeded) triggerAlarm(t.id);  // 初回スキャンの既超過分は鳴らさず記録だけ
+  });
+  alarmSeeded = true;
+}
+
+/* ===== アラーム音（WebAudioで生成。外部ファイル不要・オフラインでも鳴る） ===== */
+var audioCtx = null;
+
+// iOSは「ユーザー操作なしの音再生」を禁止しているため、
+// 最初のタップ/クリックで無音を一度鳴らして再生許可を得ておく
+function unlockAudio(){
+  try {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    audioCtx = audioCtx || new AC();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    var o = audioCtx.createOscillator();
+    var g = audioCtx.createGain();
+    g.gain.value = 0;                        // 無音
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + 0.01);
+  } catch(e){}
+}
+
+function beep(){
+  try {
+    if (!audioCtx) return;
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    var t = audioCtx.currentTime;
+    var o = audioCtx.createOscillator();
+    var g = audioCtx.createGain();
+    o.type = "sine"; o.frequency.value = 880;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.4, t + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t); o.stop(t + 0.5);
+  } catch(e){}
 }
 
 function triggerAlarm(tableId){
-  var audio = $("alarmSound");
+  var label = "テーブル" + tableId;
+  if (state && state.tables){
+    for (var i=0;i<state.tables.length;i++){
+      if (state.tables[i].id === tableId){ label = state.tables[i].name; break; }
+    }
+  }
   var n = 0;
   var iv = setInterval(function(){
-    if (n < 3){
-      if (audio){ audio.currentTime = 0; audio.play().catch(function(){}); }
-      n++;
-    } else clearInterval(iv);
+    if (n < 3){ beep(); n++; }
+    else clearInterval(iv);
   }, 800);
+  beep();
   if ("Notification" in window && Notification.permission === "granted"){
-    new Notification("⚠️ 時間超過", { body: "テーブル" + tableId + "が" + timeLimit + "分を超過しました！", requireInteraction: true });
+    new Notification("⚠️ 時間超過", { body: label + "が" + timeLimit + "分を超過しました！", requireInteraction: true });
   }
-  alert("⚠️ テーブル" + tableId + "が" + timeLimit + "分を超過しました！");
+  alert("⚠️ " + label + "が" + timeLimit + "分を超過しました！");
 }
 
 /* ---------- 受付フォーム ---------- */
+// 受付フォームの「相談内容」を会場データから組み立てる（groupごとにoptgroup）
+function fillTopicSelect(){
+  var sel = $("f-topic");
+  if (!sel) return;
+  var html = '<option value="">選択してください</option>';
+  var groups = [], byGroup = {};
+  topicsOf().forEach(function(t){
+    var g = t[2] || "";
+    if (!byGroup[g]){ byGroup[g] = []; groups.push(g); }
+    byGroup[g].push(t);
+  });
+  groups.forEach(function(g){
+    if (g) html += '<optgroup label="' + esc(g) + '">';
+    byGroup[g].forEach(function(t){ html += '<option value="' + esc(t[0]) + '">' + esc(t[0]) + '</option>'; });
+    if (g) html += '</optgroup>';
+  });
+  sel.innerHTML = html;
+}
+
+// 相談内容の値からサブ選択肢の配列を得る
+function subsOfTopic(value){
+  var ts = (state && state.venue && state.venue.topics) ? state.venue.topics : [];
+  for (var i=0;i<ts.length;i++){ if (ts[i].value === value) return (ts[i].subs || []); }
+  return [];
+}
+// 選んだ相談内容にサブがあれば「詳しい種類」を表示・必須にする
+function updateSubSelect(){
+  var subs = subsOfTopic($("f-topic").value);
+  var wrap = $("f-sub-wrap"), sel = $("f-sub");
+  if (subs.length){
+    var h = '<option value="">選択してください</option>';
+    subs.forEach(function(s){ h += '<option value="' + esc(s) + '">' + esc(s) + '</option>'; });
+    sel.innerHTML = h;
+    wrap.style.display = "";
+  } else {
+    sel.innerHTML = '<option value="">選択してください</option>';
+    wrap.style.display = "none";
+  }
+}
+
 function openForm(){
+  fillTopicSelect();
+  updateSubSelect();
   $("addForm").classList.add("open");
   setTimeout(function(){ $("f-ticket").focus(); }, 100);
 }
@@ -707,17 +1600,20 @@ function closeForm(){
   $("queueForm").reset();
 }
 function submitQueue(){
+  var subs = subsOfTopic($("f-topic").value);
   var d = {
     action: "queue_add",
     ticket_number: $("f-ticket").value.trim(),
     gender: $("f-gender").value,
     party_size: parseInt($("f-party").value, 10) || 1,
     consultation_topic: $("f-topic").value,
+    consultation_sub: (subs.length ? $("f-sub").value : ""),
     other_notes: $("f-notes").value.trim()
   };
   if (!d.ticket_number){ alert("❌ 番号札を入力してください"); return; }
   if (!d.gender){ alert("❌ 性別を選択してください"); return; }
   if (!d.consultation_topic){ alert("❌ 相談内容を選択してください"); return; }
+  if (subs.length && !d.consultation_sub){ alert("❌ 「詳しい種類」を選択してください"); return; }
 
   $("f-submit").disabled = true;
   var ticket = d.ticket_number;
@@ -735,6 +1631,7 @@ function submitQueue(){
 
 /* ---------- イベント ---------- */
 var seatModalId = null;
+var seatModalStart = null;
 
 function onSeatTap(id){ openSeatModal(id); }
 
@@ -743,6 +1640,7 @@ function openSeatModal(id){
   for (var i=0;i<state.tables.length;i++){ if (state.tables[i].id===id){ t=state.tables[i]; break; } }
   if (!t) return;
   seatModalId = id;
+  seatModalStart = t.start;   // 終了操作に添えて、別の相談を巻き添えにしないため
   $("sm-name").textContent = t.name;
   var badge = $("sm-status"), el = $("sm-elapsed"), btns = $("sm-btns");
   if (t.status === "使用中"){
@@ -761,6 +1659,22 @@ function openSeatModal(id){
     btns.innerHTML = '<button class="btn btn-info" data-seat-act="resume">休憩を解除</button>'
       + '<button class="btn btn-secondary" data-seat-act="close">閉じる</button>';
   }
+  // 本日の休憩予定を表示（取り消し線 = 手動解除済みの帯）
+  var schedEl = $("sm-sched");
+  var ws = winsOf(t.name);
+  if (schedEl){
+    if (ws.length){
+      var parts = ws.map(function(w){
+        var s = w.start + "〜" + w.end;
+        return isOverridden(t.name, w) ? "<s>" + s + "</s>" : s;
+      });
+      schedEl.innerHTML = "休憩予定: <b>" + parts.join(" / ") + "</b>"
+        + (hasOverrideToday(t.name) ? ' <span style="color:var(--danger);">※取り消し線は本日解除済み</span>' : "");
+      schedEl.style.display = "";
+    } else {
+      schedEl.style.display = "none";
+    }
+  }
   $("seatModal").classList.add("open");
 }
 
@@ -768,11 +1682,12 @@ function closeSeatModal(){ $("seatModal").classList.remove("open"); seatModalId 
 
 function seatModalAction(a){
   var id = seatModalId;
+  var st = seatModalStart;
   if (a === "close"){ closeSeatModal(); return; }
   closeSeatModal();
   if (id == null) return;
   if (a === "start") act({ action:"start", id:id });
-  else if (a === "end") act({ action:"end", id:id });
+  else if (a === "end") act({ action:"end", id:id, start:st });
   else if (a === "break") act({ action:"break", id:id });
   else if (a === "resume") act({ action:"resume", id:id });
 }
@@ -805,6 +1720,56 @@ document.addEventListener("click", function(e){
     case "cancel": if (confirm("この方を取消（相談せずに帰られた）としますか？\n平均待ち時間の集計からは除かれます。")) act({ action:"queue_cancel", id:id }); break;
     case "open-form":  openForm(); break;
     case "close-form": closeForm(); break;
+    case "bulk-selected": bulkFillSchedule(true); break;
+    case "bulk-all":      bulkFillSchedule(false); break;
+    case "win-add": {
+      var wrow = a.closest('.sched-row');
+      if (wrow && !addWinPair(wrow)) alert("時間帯は1卓につき" + MAX_WINS + "つまでです");
+      break;
+    }
+    case "win-del": {
+      var pr = a.closest('.win-pair');
+      if (pr){
+        var wrow2 = pr.closest('.sched-row');   // 削除前に行を覚えておく
+        pr.remove();
+        if (wrow2 && !wrow2.querySelector('.win-pair')) addWinPair(wrow2);  // 最低1ペアは残す
+      }
+      break;
+    }
+    case "sel-all":       selectAllSched(true); break;
+    case "sel-none":      selectAllSched(false); break;
+    case "schedule-save": saveSchedule(); break;
+    // 会場エディタ
+    case "open-venue":    openVenueEditor(); break;
+    case "ve-tab":        veTab(a.dataset.key); break;
+    case "ve-add-campus": veAddCampus(); break;
+    case "ve-del-campus": veDelCampus(); break;
+    case "ve-activate":   veActivate(); break;
+    case "ve-save":       veSaveVenue(); break;
+    case "ve-add-room":   veAddRoom(); break;
+    case "ve-del-room":   veDelRoom(+a.dataset.ri); break;
+    case "ve-mode":       veMode(+a.dataset.ri, a.dataset.mode); break;
+    case "ve-add-booth":  veAddBooth(+a.dataset.ri); break;
+    case "ve-del-booth":  veDelBooth(+a.dataset.ri, +a.dataset.bi); break;
+    case "ve-move":       veMove(+a.dataset.ri, +a.dataset.bi, +a.dataset.dir); break;
+    case "ve-cols":       veCols(+a.dataset.ri, +a.dataset.d); break;
+    case "ve-rows":       veRows(+a.dataset.ri, +a.dataset.d); break;
+    case "ve-grid-select":veGridSelect(+a.dataset.ri, +a.dataset.bi); break;
+    case "ve-grid-place": veGridPlace(+a.dataset.ri, +a.dataset.cell); break;
+    case "ve-grid-remove":veGridRemove(+a.dataset.ri, +a.dataset.bi); break;
+    case "ve-add-topic":  veAddTopic(); break;
+    case "ve-del-topic":  veDelTopic(+a.dataset.ti); break;
+    // 会場マップ
+    case "ve-fmode":      veFMode(a.dataset.mode); break;
+    case "ve-fcols":      veFCols(+a.dataset.d); break;
+    case "ve-frows":      veFRows(+a.dataset.d); break;
+    case "ve-room-select":veRoomSelect(+a.dataset.ri); break;
+    case "ve-room-place": veRoomPlace(+a.dataset.x, +a.dataset.y); break;
+    case "ve-room-unplace":veRoomUnplace(+a.dataset.ri); break;
+    case "ve-room-w":     veRoomW(+a.dataset.ri, +a.dataset.d); break;
+    case "ve-room-h":     veRoomH(+a.dataset.ri, +a.dataset.d); break;
+    case "ve-color-clear":veSyncFromDom(); editData.rooms[+a.dataset.ri].color=""; renderVenueEditor(); break;
+    case "ve-topic-subs": veEditTopicSubs(+a.dataset.ti); break;
     case "export-table":
       if (!token) return;
       window.location = API + "?action=export&type=table&token=" + encodeURIComponent(token);
@@ -815,8 +1780,11 @@ document.addEventListener("click", function(e){
       break;
     case "reset":
       if (confirm("テーブル・待機列・本日の統計をすべて初期化します。\n他の端末のデータも消えます。よろしいですか？")){
-        alarmFired = {};
-        act({ action:"reset" });
+        var rpw = prompt("確認のため、あいことばをもう一度入力してください:");
+        if (rpw){
+          alarmFired = {}; saveAlarmFired();
+          act({ action:"reset", password: rpw });
+        }
       }
       break;
   }
@@ -825,9 +1793,22 @@ document.addEventListener("click", function(e){
 $("login-btn").addEventListener("click", login);
 $("login-pw").addEventListener("keydown", function(e){ if (e.key === "Enter") login(); });
 $("queueForm").addEventListener("submit", function(e){ e.preventDefault(); submitQueue(); });
+$("f-topic").addEventListener("change", updateSubSelect);
 $("addForm").addEventListener("click", function(e){ if (e.target === this) closeForm(); });
 $("seatModal").addEventListener("click", function(e){ if (e.target === this) closeSeatModal(); });
+// 自動休憩 設定画面のチェックボックス操作＋会場エディタの部屋色
+document.addEventListener("change", function(e){
+  var t = e.target;
+  if (t.classList && t.classList.contains("area-check")){ toggleArea(t.dataset.area, t.checked); return; }
+  if (t.classList && t.classList.contains("sched-check")){ updateSelCount(); return; }
+  if (t.dataset && t.dataset.ve === "rcolor" && editData){
+    veSyncFromDom(); var ri = +t.dataset.ri; if (editData.rooms[ri]){ editData.rooms[ri].color = t.value; } renderVenueEditor(); return;
+  }
+});
 document.addEventListener("keydown", function(e){ if (e.key === "Escape"){ closeForm(); closeSeatModal(); } });
+// 最初のタップでアラーム音の再生許可を取っておく（iOS対策）
+document.addEventListener("click", unlockAudio, { once: true });
+document.addEventListener("touchend", unlockAudio, { once: true });
 
 /* ---------- 起動 ---------- */
 try { token = sessionStorage.getItem("oc_token"); } catch(e){}

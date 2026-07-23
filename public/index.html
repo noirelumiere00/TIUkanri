@@ -137,6 +137,7 @@
   .chip .x{background:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;color:var(--danger);font-weight:800;font-size:12px;cursor:pointer;}
   .chip-add{background:#fff;border:1px dashed #b9c9e8;color:var(--primary);cursor:pointer;padding:6px 12px;}
   .chip-sub{border:none;background:#fff;color:var(--primary-d);border-radius:6px;font-size:10px;font-weight:800;padding:2px 6px;cursor:pointer;}
+  .chip-grp{border:none;background:#eef4ff;color:var(--primary-d);border-radius:6px;font-size:10px;font-weight:800;padding:2px 6px;cursor:pointer;}
   .ve-color{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);font-weight:700;}
   .ve-color input[type=color]{width:34px;height:30px;border:1px solid var(--line);border-radius:6px;padding:0;cursor:pointer;background:none;}
   .ve-color-clear{color:var(--danger);cursor:pointer;font-size:11px;font-weight:700;}
@@ -968,7 +969,10 @@ function renderVenueEditor(){
   var chips = "";
   editData.topics.forEach(function(t, ti){
     var subN = (t.subs && t.subs.length) ? t.subs.length : 0;
+    var grpLabel = (t.group && t.group.length) ? t.group : 'グループ未設定';
     chips += '<span class="chip"><input data-ve-topic="' + ti + '" value="' + esc(t.value) + '" style="border:none;background:transparent;font-weight:700;color:var(--primary-d);width:' + Math.max(6, (t.value||"").length + 2) + 'ch;font-family:inherit;">'
+      + '<button class="chip-grp" data-action="ve-topic-group" data-ti="' + ti + '" title="この相談内容の見出し（学部／事務局・センター 等）を設定">'
+      + esc(grpLabel) + '</button>'
       + '<button class="chip-sub" data-action="ve-topic-subs" data-ti="' + ti + '" title="この相談内容に「詳しい種類（サブ選択肢）」を設定">'
       + (subN ? 'サブ' + subN : '＋サブ') + '</button>'
       + '<span class="x" data-action="ve-del-topic" data-ti="' + ti + '">×</span></span>';
@@ -1175,6 +1179,20 @@ function veEditTopicSubs(ti){
   var ans = prompt("「" + t.value + "」の詳しい種類（サブ選択肢）を、読点（、）区切りで入力してください。\n空にするとサブなしになります。\n例: 心理系、スポーツ系", cur);
   if (ans === null) return;
   t.subs = ans.split(/[、,]/).map(function(s){ return s.trim(); }).filter(function(s){ return s !== "" && s.indexOf(";")<0 && s.indexOf("|")<0 && s.indexOf(",")<0; });
+  renderVenueEditor();
+}
+
+// 相談内容の見出し（グループ）の設定。受付フォームでこの見出しごとにまとめて表示される。
+function veEditTopicGroup(ti){
+  veSyncFromDom();
+  var t = editData.topics[ti]; if (!t) return;
+  // いま使われている見出しの一覧を例として提示
+  var used = {}; editData.topics.forEach(function(x){ if (x.group) used[x.group] = 1; });
+  var list = Object.keys(used).join("、") || "学部、事務局・センター";
+  var ans = prompt("「" + t.value + "」の見出し（グループ）を入力してください。\n同じ見出しの相談内容がまとめて表示されます。空にすると見出しなしになります。\n今ある見出し: " + list, t.group || "");
+  if (ans === null) return;
+  ans = ans.replace(/[|;,]/g, "").trim();   // フラット保存を壊す記号は除去
+  t.group = ans;
   renderVenueEditor();
 }
 
@@ -1776,6 +1794,7 @@ document.addEventListener("click", function(e){
     case "ve-room-h":     veRoomH(+a.dataset.ri, +a.dataset.d); break;
     case "ve-color-clear":veSyncFromDom(); editData.rooms[+a.dataset.ri].color=""; renderVenueEditor(); break;
     case "ve-topic-subs": veEditTopicSubs(+a.dataset.ti); break;
+    case "ve-topic-group":veEditTopicGroup(+a.dataset.ti); break;
     case "export-table":
       if (!token) return;
       window.location = API + "?action=export&type=table&token=" + encodeURIComponent(token);

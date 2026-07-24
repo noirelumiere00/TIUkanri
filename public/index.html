@@ -138,6 +138,8 @@
   .chip-add{background:#fff;border:1px dashed #b9c9e8;color:var(--primary);cursor:pointer;padding:6px 12px;}
   .chip-sub{border:none;background:#fff;color:var(--primary-d);border-radius:6px;font-size:10px;font-weight:800;padding:2px 6px;cursor:pointer;}
   .chip-grp{border:none;background:#eef4ff;color:var(--primary-d);border-radius:6px;font-size:10px;font-weight:800;padding:2px 6px;cursor:pointer;}
+  .chip-mv{border:none;background:#fff;color:var(--primary-d);border-radius:6px;font-size:11px;font-weight:800;padding:2px 5px;cursor:pointer;min-width:22px;}
+  .chip-mv:disabled{color:#c7d0dd;cursor:default;}
   .ve-color{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);font-weight:700;}
   .ve-color input[type=color]{width:34px;height:30px;border:1px solid var(--line);border-radius:6px;padding:0;cursor:pointer;background:none;}
   .ve-color-clear{color:var(--danger);cursor:pointer;font-size:11px;font-weight:700;}
@@ -970,7 +972,11 @@ function renderVenueEditor(){
   editData.topics.forEach(function(t, ti){
     var subN = (t.subs && t.subs.length) ? t.subs.length : 0;
     var grpLabel = (t.group && t.group.length) ? t.group : 'グループ未設定';
-    chips += '<span class="chip"><input data-ve-topic="' + ti + '" value="' + esc(t.value) + '" style="border:none;background:transparent;font-weight:700;color:var(--primary-d);width:' + Math.max(6, (t.value||"").length + 2) + 'ch;font-family:inherit;">'
+    var isFirst = (ti === 0), isLast = (ti === editData.topics.length - 1);
+    chips += '<span class="chip">'
+      + '<button class="chip-mv" data-action="ve-topic-move" data-ti="' + ti + '" data-dir="-1" title="前へ移動"' + (isFirst ? ' disabled' : '') + '>◀</button>'
+      + '<button class="chip-mv" data-action="ve-topic-move" data-ti="' + ti + '" data-dir="1" title="後へ移動"' + (isLast ? ' disabled' : '') + '>▶</button>'
+      + '<input data-ve-topic="' + ti + '" value="' + esc(t.value) + '" style="border:none;background:transparent;font-weight:700;color:var(--primary-d);width:' + Math.max(6, (t.value||"").length + 2) + 'ch;font-family:inherit;">'
       + '<button class="chip-grp" data-action="ve-topic-group" data-ti="' + ti + '" title="この相談内容の見出し（学部／事務局・センター 等）を設定">'
       + esc(grpLabel) + '</button>'
       + '<button class="chip-sub" data-action="ve-topic-subs" data-ti="' + ti + '" title="この相談内容に「詳しい種類（サブ選択肢）」を設定">'
@@ -1179,6 +1185,15 @@ function veEditTopicSubs(ti){
   var ans = prompt("「" + t.value + "」の詳しい種類（サブ選択肢）を、読点（、）区切りで入力してください。\n空にするとサブなしになります。\n例: 心理系、スポーツ系", cur);
   if (ans === null) return;
   t.subs = ans.split(/[、,]/).map(function(s){ return s.trim(); }).filter(function(s){ return s !== "" && s.indexOf(";")<0 && s.indexOf("|")<0 && s.indexOf(",")<0; });
+  renderVenueEditor();
+}
+
+// 相談内容の並べ替え（◀前へ / ▶後へ）。受付フォーム・待機列タブの表示順に反映される。
+function veMoveTopic(ti, dir){
+  veSyncFromDom();
+  var arr = editData.topics, j = ti + dir;
+  if (j < 0 || j >= arr.length) return;
+  var tmp = arr[ti]; arr[ti] = arr[j]; arr[j] = tmp;
   renderVenueEditor();
 }
 
@@ -1795,6 +1810,7 @@ document.addEventListener("click", function(e){
     case "ve-color-clear":veSyncFromDom(); editData.rooms[+a.dataset.ri].color=""; renderVenueEditor(); break;
     case "ve-topic-subs": veEditTopicSubs(+a.dataset.ti); break;
     case "ve-topic-group":veEditTopicGroup(+a.dataset.ti); break;
+    case "ve-topic-move": veMoveTopic(+a.dataset.ti, +a.dataset.dir); break;
     case "export-table":
       if (!token) return;
       window.location = API + "?action=export&type=table&token=" + encodeURIComponent(token);

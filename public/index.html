@@ -1426,7 +1426,7 @@ function renderFloor(){
     html = '<p class="no-queue">\u3053\u306e\u4f1a\u5834\u306b\u306f\u307e\u3060\u90e8\u5c4b\u30fb\u30d6\u30fc\u30b9\u304c\u767b\u9332\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002<br>\u30db\u30fc\u30e0 \u2192\u300c\u4f1a\u5834\u30fb\u30ec\u30a4\u30a2\u30a6\u30c8\u8a2d\u5b9a\u300d\u3067\u767b\u9332\u3057\u3066\u304f\u3060\u3055\u3044\u3002</p>';
   }
   $("floor").innerHTML = html;
-  updateElapsed();
+  tick();   // 描画直後に経過時間・進捗を即反映（関数名は tick。以前の updateElapsed は未定義だった）
 }
 
 function queueItemHtml(item, withTopic){

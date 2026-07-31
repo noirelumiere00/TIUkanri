@@ -1820,7 +1820,7 @@ document.addEventListener("click", function(e){
       window.location = API + "?action=export&type=queue&token=" + encodeURIComponent(token);
       break;
     case "reset":
-      if (confirm("テーブル・待機列・本日の統計をすべて初期化します。\n他の端末のデータも消えます。よろしいですか？")){
+      if (confirm("テーブルの状態・待機列・本日の統計を初期化します（すべて空きに戻ります）。\n※会場レイアウト（部屋・ブース・相談内容・色・配置図）と自動休憩の設定は残ります。\n他の端末のデータも消えます。よろしいですか？")){
         var rpw = prompt("確認のため、あいことばをもう一度入力してください:");
         if (rpw){
           alarmFired = {}; saveAlarmFired();
